@@ -24,14 +24,11 @@ public class VolleyballEnvController : MonoBehaviour
 
     VolleyballSettings volleyballSettings;
 
-    public VolleyballAgent blueAgent;
-    public VolleyballAgent purpleAgent;
+    public List<VolleyballAgent> blueAgents;
+    public List<VolleyballAgent> purpleAgents;
 
-    public List<VolleyballAgent> AgentsList = new List<VolleyballAgent>();
+    // public List<VolleyballAgent> AgentsList = new List<VolleyballAgent>();
     List<Renderer> RenderersList = new List<Renderer>();
-
-    Rigidbody blueAgentRb;
-    Rigidbody purpleAgentRb;
 
     public GameObject ball;
     Rigidbody ballRb;
@@ -52,8 +49,6 @@ public class VolleyballEnvController : MonoBehaviour
     {
 
         // Used to control agent & ball starting positions
-        blueAgentRb = blueAgent.GetComponent<Rigidbody>();
-        purpleAgentRb = purpleAgent.GetComponent<Rigidbody>();
         ballRb = ball.GetComponent<Rigidbody>();
 
         // Starting ball spawn side
@@ -67,7 +62,7 @@ public class VolleyballEnvController : MonoBehaviour
         RenderersList.Add(blueGoalRenderer);
         RenderersList.Add(purpleGoalRenderer);
 
-        volleyballSettings = FindObjectOfType<VolleyballSettings>();
+        volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
 
         ResetScene();
     }
@@ -78,6 +73,17 @@ public class VolleyballEnvController : MonoBehaviour
     public void UpdateLastHitter(Team team)
     {
         lastHitter = team;
+    }
+
+    private void EndAllEpisodes() {
+        foreach (var agent in blueAgents) 
+        {
+            agent.EndEpisode();
+        }
+        foreach (var agent in purpleAgents) 
+        {
+            agent.EndEpisode();
+        }
     }
 
     /// <summary>
@@ -104,8 +110,7 @@ public class VolleyballEnvController : MonoBehaviour
                 }
 
                 // end episode
-                blueAgent.EndEpisode();
-                purpleAgent.EndEpisode();
+                EndAllEpisodes();
                 ResetScene();
                 break;
 
@@ -118,8 +123,7 @@ public class VolleyballEnvController : MonoBehaviour
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
 
                 // end episode
-                blueAgent.EndEpisode();
-                purpleAgent.EndEpisode();
+                EndAllEpisodes();
                 ResetScene();
                 break;
 
@@ -132,22 +136,27 @@ public class VolleyballEnvController : MonoBehaviour
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));
 
                 // end episode
-                blueAgent.EndEpisode();
-                purpleAgent.EndEpisode();
+                EndAllEpisodes();
                 ResetScene();
                 break;
 
             case Event.HitIntoBlueArea:
                 if (lastHitter == Team.Purple)
                 {
-                    purpleAgent.AddReward(1);
+                    foreach (var agent in purpleAgents)
+                    {
+                        agent.AddReward(1);
+                    }
                 }
                 break;
 
             case Event.HitIntoPurpleArea:
                 if (lastHitter == Team.Blue)
                 {
-                    blueAgent.AddReward(1);
+                    foreach (var agent in blueAgents)
+                    {
+                        agent.AddReward(1);
+                    }
                 }
                 break;
         }
@@ -183,8 +192,6 @@ public class VolleyballEnvController : MonoBehaviour
         resetTimer += 1;
         if (resetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
         {
-            blueAgent.EpisodeInterrupted();
-            purpleAgent.EpisodeInterrupted();
             ResetScene();
         }
     }
@@ -198,8 +205,26 @@ public class VolleyballEnvController : MonoBehaviour
 
         lastHitter = Team.Default; // reset last hitter
 
-        foreach (var agent in AgentsList)
+        foreach (var agent in blueAgents)
         {
+            agent.EpisodeInterrupted();
+
+            // randomise starting positions and rotations
+            var randomPosX = Random.Range(-2f, 2f);
+            var randomPosZ = Random.Range(-2f, 2f);
+            var randomPosY = Random.Range(0.5f, 3.75f); // depends on jump height
+            var randomRot = Random.Range(-45f, 45f);
+
+            agent.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
+            agent.transform.eulerAngles = new Vector3(0, randomRot, 0);
+
+            agent.GetComponent<Rigidbody>().velocity = default(Vector3);
+        }
+
+        foreach (var agent in purpleAgents)
+        {
+            agent.EpisodeInterrupted();
+
             // randomise starting positions and rotations
             var randomPosX = Random.Range(-2f, 2f);
             var randomPosZ = Random.Range(-2f, 2f);

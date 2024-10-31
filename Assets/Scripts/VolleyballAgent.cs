@@ -7,7 +7,7 @@ using Unity.MLAgents.Policies;
 public class VolleyballAgent : Agent
 {
     public GameObject area;
-    Rigidbody agentRb;
+    public Rigidbody agentRb;
     BehaviorParameters behaviorParameters;
     public Team teamId;
 
@@ -34,7 +34,7 @@ public class VolleyballAgent : Agent
 
     public override void Initialize()
     {
-        volleyballSettings = FindObjectOfType<VolleyballSettings>();
+        volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
         behaviorParameters = gameObject.GetComponent<BehaviorParameters>();
 
         agentRb = GetComponent<Rigidbody>();

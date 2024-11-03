@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.MLAgents;
 using UnityEngine;
 
 public enum Team
@@ -26,8 +27,9 @@ public class VolleyballEnvController : MonoBehaviour
 
     public List<VolleyballAgent> blueAgents;
     public List<VolleyballAgent> purpleAgents;
+    private SimpleMultiAgentGroup blueGroup;
+    private SimpleMultiAgentGroup purpleGroup;
 
-    // public List<VolleyballAgent> AgentsList = new List<VolleyballAgent>();
     List<Renderer> RenderersList = new List<Renderer>();
 
     public GameObject ball;
@@ -64,6 +66,19 @@ public class VolleyballEnvController : MonoBehaviour
 
         volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
 
+        blueGroup = new SimpleMultiAgentGroup();
+        purpleGroup = new SimpleMultiAgentGroup();
+
+        foreach (var agent in blueAgents)
+        {
+            blueGroup.RegisterAgent(agent);
+        }
+
+        foreach (var agent in purpleAgents)
+        {
+            purpleGroup.RegisterAgent(agent);
+        }
+
         ResetScene();
     }
 
@@ -73,16 +88,14 @@ public class VolleyballEnvController : MonoBehaviour
     public void UpdateLastHitter(Team team)
     {
         lastHitter = team;
-    }
 
-    private void EndAllEpisodes() {
-        foreach (var agent in blueAgents) 
+        if (team == Team.Blue)
         {
-            agent.EndEpisode();
+            blueGroup.AddGroupReward(0.001f);
         }
-        foreach (var agent in purpleAgents) 
+        else if (team == Team.Purple)
         {
-            agent.EndEpisode();
+            purpleGroup.AddGroupReward(0.001f);
         }
     }
 
@@ -110,53 +123,50 @@ public class VolleyballEnvController : MonoBehaviour
                 }
 
                 // end episode
-                EndAllEpisodes();
+                blueGroup.EndGroupEpisode();
+                purpleGroup.EndGroupEpisode();
                 ResetScene();
                 break;
 
             case Event.HitBlueGoal:
                 // blue wins
                 // blueAgent.AddReward(1f);
-                // purpleAgent.AddReward(-1f);
+                purpleGroup.AddGroupReward(-1f);
 
                 // turn floor blue
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
 
                 // end episode
-                EndAllEpisodes();
+                blueGroup.EndGroupEpisode();
+                purpleGroup.EndGroupEpisode();
                 ResetScene();
                 break;
 
             case Event.HitPurpleGoal:
                 // purple wins
                 // purpleAgent.AddReward(1f);
-                // blueAgent.AddReward(-1f);
+                blueGroup.AddGroupReward(-1f);
 
                 // turn floor purple
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));
 
                 // end episode
-                EndAllEpisodes();
+                blueGroup.EndGroupEpisode();
+                purpleGroup.EndGroupEpisode();
                 ResetScene();
                 break;
 
             case Event.HitIntoBlueArea:
                 if (lastHitter == Team.Purple)
                 {
-                    foreach (var agent in purpleAgents)
-                    {
-                        agent.AddReward(1);
-                    }
+                    purpleGroup.AddGroupReward(1);
                 }
                 break;
 
             case Event.HitIntoPurpleArea:
                 if (lastHitter == Team.Blue)
                 {
-                    foreach (var agent in blueAgents)
-                    {
-                        agent.AddReward(1);
-                    }
+                    blueGroup.AddGroupReward(1);
                 }
                 break;
         }
@@ -192,6 +202,8 @@ public class VolleyballEnvController : MonoBehaviour
         resetTimer += 1;
         if (resetTimer >= MaxEnvironmentSteps && MaxEnvironmentSteps > 0)
         {
+            blueGroup.GroupEpisodeInterrupted();
+            purpleGroup.GroupEpisodeInterrupted();
             ResetScene();
         }
     }

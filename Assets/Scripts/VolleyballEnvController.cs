@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
+using Unity.Sentis;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum Team
 {
@@ -25,8 +27,15 @@ public class VolleyballEnvController : MonoBehaviour
 
     VolleyballSettings volleyballSettings;
 
-    public List<VolleyballAgent> blueAgents;
-    public List<VolleyballAgent> purpleAgents;
+    public List<string> behaviors;
+    public List<ModelAsset> modelAssets;
+    
+    public GameObject blueManager;
+    public GameObject purpleManager;
+
+    private List<VolleyballAgent> blueAgents;
+    private List<VolleyballAgent> purpleAgents;
+    
     private SimpleMultiAgentGroup blueGroup;
     private SimpleMultiAgentGroup purpleGroup;
 
@@ -65,6 +74,9 @@ public class VolleyballEnvController : MonoBehaviour
         RenderersList.Add(purpleGoalRenderer);
 
         volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
+
+        blueAgents = blueManager.GetComponent<VolleyballManager>().GetAgents();
+        purpleAgents = purpleManager.GetComponent<VolleyballManager>().GetAgents();
 
         blueGroup = new SimpleMultiAgentGroup();
         purpleGroup = new SimpleMultiAgentGroup();

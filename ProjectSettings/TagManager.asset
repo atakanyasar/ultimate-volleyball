@@ -18,6 +18,7 @@ TagManager:
   - boundary
   - blueBoundary
   - purpleBoundary
+  - manager
   layers:
   - Default
   - TransparentFX

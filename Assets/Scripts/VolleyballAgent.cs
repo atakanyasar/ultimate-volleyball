@@ -3,12 +3,13 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
+using System;
 
 public class VolleyballAgent : Agent
 {
     public GameObject area;
     public Rigidbody agentRb;
-    BehaviorParameters behaviorParameters;
+    private BehaviorParameters behaviorParameters;
     public Team teamId;
 
     // To get ball's location for observations
@@ -26,6 +27,13 @@ public class VolleyballAgent : Agent
 
     public Collider[] hitGroundColliders = new Collider[3];
     EnvironmentParameters resetParams;
+
+    private Vector3 moveToTarget = new(-1.0f, 0.5f, -1.0f);
+    private bool activeTarget = false;
+    public GameObject MoveToTargetPlane;
+
+    public Vector3 MoveToTarget { get => moveToTarget; set => moveToTarget = value; }
+    public bool ActiveTarget { get => activeTarget; set => activeTarget = value; }
 
     void Start()
     {
@@ -148,11 +156,17 @@ public class VolleyballAgent : Agent
         else if (dirToGoSideAction == 2)
             dirToGo = (grounded ? 1f : 0.5f) * transform.right * volleyballSettings.speedReductionFactor;
 
-        if (jumpAction == 1)
+        if (jumpAction == 1) {
+
+            // Penalty for unecessary jumping
+            AddReward(-0.001f);
+
             if (((jumpingTime <= 0f) && grounded))
             {
                 Jump();
             }
+
+        }
 
         transform.Rotate(rotateDir, Time.fixedDeltaTime * 200f);
         agentRb.AddForce(agentRot * dirToGo * volleyballSettings.agentRunSpeed,
@@ -183,11 +197,43 @@ public class VolleyballAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
     {
+        var previousDistance = Vector3.Distance(this.transform.position, this.MoveToTarget);
         MoveAgent(actionBuffers.DiscreteActions);
+        var currentDistance = Vector3.Distance(this.transform.position, this.MoveToTarget);
+
+        if (this.ActiveTarget) {
+            // relative to manager
+            this.MoveToTargetPlane.transform.position = this.MoveToTarget;
+
+            // If moved towards the target, reward the agent
+            AddReward((previousDistance - currentDistance) * 0.001f);
+
+            // If agent reaches the target
+            if (currentDistance < 0.75f)
+            {
+                AddReward(1.0f);
+                this.ActiveTarget = false;
+                this.MoveToTarget = new Vector3(-1.0f, 0.5f, -1.0f);
+                this.MoveToTargetPlane.SetActive(false);
+            }
+        }
+
+
+
     }
 
     public override void CollectObservations(VectorSensor sensor)
     {
+
+        if (behaviorParameters.BehaviorName == "MoveTo") {
+            // Add Move To Target position (3 floats)
+            sensor.AddObservation(this.MoveToTarget - this.transform.position);
+
+            // Agent rotation (1 float)
+            sensor.AddObservation(this.transform.rotation.y);
+            return;
+        }
+        
         // Agent rotation (1 float)
         sensor.AddObservation(this.transform.rotation.y);
 
@@ -208,6 +254,7 @@ public class VolleyballAgent : Agent
         sensor.AddObservation(ballRb.velocity.y);
         sensor.AddObservation(ballRb.velocity.z*agentRot);
         sensor.AddObservation(ballRb.velocity.x*agentRot);
+
     }
 
     // For human controller

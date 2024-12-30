@@ -4,6 +4,7 @@ using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
 using Unity.Sentis;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public enum SubTask
 {
@@ -47,9 +48,9 @@ public class VolleyballManager : Agent
 
     public override void OnActionReceived(ActionBuffers actions) {
         // apply actions to each agent
-        foreach (VolleyballAgent agent in agents) {
-            GiveTask(agent, (SubTask)actions.DiscreteActions[0]);
-        }
+        // foreach (VolleyballAgent agent in agents) {
+        //     GiveTask(agent, (SubTask)actions.DiscreteActions[0]);
+        // }
     }
 
     public override void CollectObservations(VectorSensor sensor) {
@@ -78,16 +79,22 @@ public class VolleyballManager : Agent
         */
 
         // add agent-specific observations for each agent
-        for (int i = 0; i < agents.Count; i++) {
-            VolleyballAgent agent = agents[i];
-            agent.CollectObservations(sensor);
-        }
+        // for (int i = 0; i < agents.Count; i++) {
+        //     VolleyballAgent agent = agents[i];
+        //     agent.CollectObservations(sensor);
+        // }
 
     }
 
     public override void Heuristic(in ActionBuffers actionsOut) {
         foreach (VolleyballAgent agent in agents) {
             //GiveTask(agent, SubTask.MoveToBall);
+            if (agent.ActiveTarget == false) {
+                agent.ActiveTarget = true;
+                agent.MoveToTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
+                agent.MoveToTargetPlane.SetActive(true);
+                agent.MoveToTargetPlane.transform.localPosition = agent.MoveToTarget;
+            } 
         }
     }
 

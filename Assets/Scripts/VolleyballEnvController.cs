@@ -199,7 +199,7 @@ public class VolleyballEnvController : MonoBehaviour
 
     public void EndAllEpisodes()
     {
-        return; // For Player MoveTo training mode
+        // return; // For Player MoveTo training mode
         
         for (int i = 0; i < blueAgents.Count; i++)
         {

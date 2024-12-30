@@ -41,9 +41,21 @@ public class VolleyballManager : Agent
     }
 
     private void GiveTask(VolleyballAgent agent, SubTask task) {
-        string behavior = envController.behaviors[(int)task];
-        ModelAsset model = envController.modelAssets[(int)task];
-        agent.SetModel(behavior, model);
+        // string behavior = envController.behaviors[(int)task];
+        // ModelAsset model = envController.modelAssets[(int)task];
+        // agent.SetModel(behavior, model);
+
+        if (task == SubTask.MoveToPosition) {
+            if (agent.ActiveTarget == false) {
+                agent.ActiveTarget = true;
+                agent.MoveToTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
+                agent.MoveToTargetPlane.SetActive(true);
+                agent.MoveToTargetPlane.transform.localPosition = agent.MoveToTarget;
+            } 
+        }
+        if (task == SubTask.MoveToBall) {
+
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actions) {
@@ -88,13 +100,7 @@ public class VolleyballManager : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut) {
         foreach (VolleyballAgent agent in agents) {
-            //GiveTask(agent, SubTask.MoveToBall);
-            if (agent.ActiveTarget == false) {
-                agent.ActiveTarget = true;
-                agent.MoveToTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
-                agent.MoveToTargetPlane.SetActive(true);
-                agent.MoveToTargetPlane.transform.localPosition = agent.MoveToTarget;
-            } 
+            GiveTask(agent, SubTask.MoveToBall);   
         }
     }
 

@@ -116,6 +116,10 @@ public class VolleyballAgent : Agent
         if (c.gameObject.CompareTag("ball"))
         {
             envController.UpdateLastHitter(teamId);
+
+            if (behaviorParameters.BehaviorName == "MoveToBall") {
+                AddReward(1.0f);
+            }
         }
     }
 
@@ -201,23 +205,24 @@ public class VolleyballAgent : Agent
         MoveAgent(actionBuffers.DiscreteActions);
         var currentDistance = Vector3.Distance(this.transform.position, this.MoveToTarget);
 
-        if (this.ActiveTarget) {
-            // relative to manager
-            this.MoveToTargetPlane.transform.position = this.MoveToTarget;
+        if (behaviorParameters.BehaviorName == "MoveTo") {
+            if (this.ActiveTarget) {
+                // relative to manager
+                this.MoveToTargetPlane.transform.position = this.MoveToTarget;
 
-            // If moved towards the target, reward the agent
-            AddReward((previousDistance - currentDistance) * 0.001f);
+                // If moved towards the target, reward the agent
+                AddReward((previousDistance - currentDistance) * 0.001f);
 
-            // If agent reaches the target
-            if (currentDistance < 0.75f)
-            {
-                AddReward(1.0f);
-                this.ActiveTarget = false;
-                this.MoveToTarget = new Vector3(-1.0f, 0.5f, -1.0f);
-                this.MoveToTargetPlane.SetActive(false);
+                // If agent reaches the target
+                if (currentDistance < 0.75f)
+                {
+                    AddReward(1.0f);
+                    this.ActiveTarget = false;
+                    this.MoveToTarget = new Vector3(-1.0f, 0.5f, -1.0f);
+                    this.MoveToTargetPlane.SetActive(false);
+                }
             }
         }
-
 
 
     }
@@ -233,27 +238,31 @@ public class VolleyballAgent : Agent
             sensor.AddObservation(this.transform.rotation.y);
             return;
         }
-        
-        // Agent rotation (1 float)
-        sensor.AddObservation(this.transform.rotation.y);
 
-        // Vector from agent to ball (direction to ball) (3 floats)
-        Vector3 toBall = new Vector3((ballRb.transform.position.x - this.transform.position.x)*agentRot, 
-        (ballRb.transform.position.y - this.transform.position.y),
-        (ballRb.transform.position.z - this.transform.position.z)*agentRot);
+        else {
+            // Agent rotation (1 float)
+            sensor.AddObservation(this.transform.rotation.y);
 
-        sensor.AddObservation(toBall.normalized);
+            // Vector from agent to ball (direction to ball) (3 floats)
+            Vector3 toBall = new Vector3((ballRb.transform.position.x - this.transform.position.x)*agentRot, 
+            (ballRb.transform.position.y - this.transform.position.y),
+            (ballRb.transform.position.z - this.transform.position.z)*agentRot);
 
-        // Distance from the ball (1 float)
-        sensor.AddObservation(toBall.magnitude);
+            sensor.AddObservation(toBall.normalized);
 
-        // Agent velocity (3 floats)
-        sensor.AddObservation(agentRb.velocity);
+            // Distance from the ball (1 float)
+            sensor.AddObservation(toBall.magnitude);
 
-        // Ball velocity (3 floats)
-        sensor.AddObservation(ballRb.velocity.y);
-        sensor.AddObservation(ballRb.velocity.z*agentRot);
-        sensor.AddObservation(ballRb.velocity.x*agentRot);
+            // Agent velocity (3 floats)
+            sensor.AddObservation(agentRb.velocity);
+
+            // Ball velocity (3 floats)
+            sensor.AddObservation(ballRb.velocity.y);
+            sensor.AddObservation(ballRb.velocity.z*agentRot);
+            sensor.AddObservation(ballRb.velocity.x*agentRot);
+
+            return;
+        }
 
     }
 

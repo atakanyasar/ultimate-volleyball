@@ -9,10 +9,11 @@ using Random = UnityEngine.Random;
 public enum SubTask
 {
     Idle = 0,
-    MoveToBall = 1,
-    HitBall = 2,
-    BlockBall = 3,
-    MoveToPosition = 4
+    SinglePlayer,
+    MoveToBall,
+    HitBall,
+    BlockBall,
+    MoveToPosition
 }
 
 public class VolleyballManager : Agent
@@ -44,6 +45,9 @@ public class VolleyballManager : Agent
         // string behavior = envController.behaviors[(int)task];
         // ModelAsset model = envController.modelAssets[(int)task];
         // agent.SetModel(behavior, model);
+        if (task == SubTask.SinglePlayer) {
+
+        }
 
         if (task == SubTask.MoveToPosition) {
             if (agent.ActiveTarget == false) {
@@ -56,6 +60,7 @@ public class VolleyballManager : Agent
         if (task == SubTask.MoveToBall) {
 
         }
+
     }
 
     public override void OnActionReceived(ActionBuffers actions) {
@@ -100,7 +105,7 @@ public class VolleyballManager : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut) {
         foreach (VolleyballAgent agent in agents) {
-            GiveTask(agent, SubTask.MoveToBall);   
+            GiveTask(agent, SubTask.SinglePlayer);   
         }
     }
 

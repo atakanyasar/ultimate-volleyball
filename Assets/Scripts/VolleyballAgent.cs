@@ -61,6 +61,11 @@ public class VolleyballAgent : Agent
         resetParams = Academy.Instance.EnvironmentParameters;
     }
 
+    public bool BehaviorNameEquals(string name)
+    {
+        return behaviorParameters.BehaviorName == name;
+    }
+
     /// <summary>
     /// Moves  a rigidbody towards a position smoothly.
     /// </summary>
@@ -115,11 +120,7 @@ public class VolleyballAgent : Agent
     {
         if (c.gameObject.CompareTag("ball"))
         {
-            envController.UpdateLastHitter(teamId);
-
-            if (behaviorParameters.BehaviorName == "MoveToBall") {
-                AddReward(1.0f);
-            }
+            envController.UpdateLastHitter(teamId, this);
         }
     }
 
@@ -163,7 +164,7 @@ public class VolleyballAgent : Agent
         if (jumpAction == 1) {
 
             // Penalty for unecessary jumping
-            AddReward(-0.001f);
+            AddReward(-0.0001f);
 
             if (((jumpingTime <= 0f) && grounded))
             {
@@ -239,7 +240,7 @@ public class VolleyballAgent : Agent
             return;
         }
 
-        else {
+        else if (behaviorParameters.BehaviorName == "MoveToBall" || behaviorParameters.BehaviorName == "1v1") {
             // Agent rotation (1 float)
             sensor.AddObservation(this.transform.rotation.y);
 

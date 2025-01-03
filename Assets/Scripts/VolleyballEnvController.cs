@@ -48,7 +48,8 @@ public class VolleyballEnvController : MonoBehaviour
 
     Renderer purpleGoalRenderer;
 
-    Team lastHitter;
+    Team lastHitterTeam;
+    VolleyballAgent lastHitterAgent;
 
     private int resetTimer;
     public int MaxEnvironmentSteps;
@@ -81,9 +82,19 @@ public class VolleyballEnvController : MonoBehaviour
     /// <summary>
     /// Tracks which agent last had control of the ball
     /// </summary>
-    public void UpdateLastHitter(Team team)
+    public void UpdateLastHitter(Team team, VolleyballAgent agent)
     {
-        lastHitter = team;
+        lastHitterTeam = team;
+        lastHitterAgent = agent;
+
+        if (lastHitterAgent.BehaviorNameEquals("MoveToBall")) {
+            agent.AddReward(1.0f);
+        }
+
+        if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+            agent.AddReward(0.01f);
+        }
+
     }
 
     /// <summary>
@@ -96,17 +107,9 @@ public class VolleyballEnvController : MonoBehaviour
         switch (triggerEvent)
         {
             case Event.HitOutOfBounds:
-                if (lastHitter == Team.Blue)
-                {
-                    // apply penalty to blue agent
-                    // blueAgent.AddReward(-0.1f);
-                    // purpleAgent.AddReward(0.1f);
-                }
-                else if (lastHitter == Team.Purple)
-                {
-                    // apply penalty to purple agent
-                    // purpleAgent.AddReward(-0.1f);
-                    // blueAgent.AddReward(0.1f);
+                // apply penalty to agent
+                if (lastHitterAgent != null && lastHitterAgent.BehaviorNameEquals("1v1")) {
+                    lastHitterAgent.AddReward(-0.009f);
                 }
 
                 // end episode
@@ -117,6 +120,27 @@ public class VolleyballEnvController : MonoBehaviour
                 // blue wins
                 blueManager.GetComponent<VolleyballManager>().AddReward(1f);
                 purpleManager.GetComponent<VolleyballManager>().AddReward(-1f);
+
+                // penalty to purple agent
+                foreach (var agent in purpleAgents)
+                {
+                    if (agent.BehaviorNameEquals("1v1")) {
+                        if (lastHitterTeam == Team.Blue) {
+                            agent.AddReward(-1f);
+                        }
+                        else {
+                            agent.AddReward(-0.009f);
+                        }
+                    }
+                }
+
+                // reward for blue agent
+                if (lastHitterTeam == Team.Blue)
+                {
+                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                        lastHitterAgent.AddReward(1f);
+                    }
+                }
 
                 // turn floor blue
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
@@ -130,6 +154,27 @@ public class VolleyballEnvController : MonoBehaviour
                 purpleManager.GetComponent<VolleyballManager>().AddReward(1f);
                 blueManager.GetComponent<VolleyballManager>().AddReward(-1f);
 
+                // penalty to blue agent
+                foreach (var agent in blueAgents)
+                {
+                    if (agent.BehaviorNameEquals("1v1")) {
+                        if (lastHitterTeam == Team.Purple) {          
+                            agent.AddReward(-1f);
+                        }
+                        else {
+                            agent.AddReward(-0.009f);
+                        }
+                    }
+                }
+
+                // reward for purple agent
+                if (lastHitterTeam == Team.Purple)
+                {
+                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                        lastHitterAgent.AddReward(1f);
+                    }
+                }
+
                 // turn floor purple
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));
 
@@ -138,16 +183,24 @@ public class VolleyballEnvController : MonoBehaviour
                 break;
 
             case Event.HitIntoBlueArea:
-                if (lastHitter == Team.Purple)
+                if (lastHitterTeam == Team.Purple)
                 {
                     purpleManager.GetComponent<VolleyballManager>().AddReward(1f);
+
+                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                        lastHitterAgent.AddReward(0.1f);
+                    }
                 }
                 break;
 
             case Event.HitIntoPurpleArea:
-                if (lastHitter == Team.Blue)
+                if (lastHitterTeam == Team.Blue)
                 {
                     blueManager.GetComponent<VolleyballManager>().AddReward(1f);
+
+                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                        lastHitterAgent.AddReward(0.1f);
+                    }
                 }
                 break;
         }
@@ -221,7 +274,8 @@ public class VolleyballEnvController : MonoBehaviour
     {
         resetTimer = 0;
 
-        lastHitter = Team.Default; // reset last hitter
+        lastHitterTeam = Team.Default; // reset last hitter
+        lastHitterAgent = null;
 
         foreach (var agent in blueAgents)
         {

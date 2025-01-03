@@ -322,6 +322,10 @@ public class VolleyballEnvController : MonoBehaviour
         var randomPosZ = Random.Range(6f, 10f);
         var randomPosY = Random.Range(6f, 8f);
 
+        var randomVelX = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);
+        var randomVelY = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);
+        var randomVelZ = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);
+
         // alternate ball spawn side
         // -1 = spawn blue side, 1 = spawn purple side
         ballSpawnSide = -1 * ballSpawnSide;
@@ -336,6 +340,6 @@ public class VolleyballEnvController : MonoBehaviour
         }
 
         ballRb.angularVelocity = Vector3.zero;
-        ballRb.velocity = Vector3.zero;
+        ballRb.velocity = new Vector3(randomVelX, randomVelY, randomVelZ);
     }
 }

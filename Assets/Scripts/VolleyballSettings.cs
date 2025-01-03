@@ -16,4 +16,7 @@ public class VolleyballSettings : MonoBehaviour
 
     // This is a downward force applied when falling to make jumps look less floaty
     public float fallingForce = 150;
+
+    public float ballResetMaxVelocity = 10f;
+     
 }

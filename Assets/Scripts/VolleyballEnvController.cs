@@ -26,6 +26,7 @@ public class VolleyballEnvController : MonoBehaviour
     int ballSpawnSide;
 
     VolleyballSettings volleyballSettings;
+    BehaviorStatistics behaviorStatistics;
 
     public List<string> behaviors;
     public List<ModelAsset> modelAssets;
@@ -45,7 +46,6 @@ public class VolleyballEnvController : MonoBehaviour
     public GameObject purpleGoal;
 
     Renderer blueGoalRenderer;
-
     Renderer purpleGoalRenderer;
 
     Team lastHitterTeam;
@@ -72,6 +72,7 @@ public class VolleyballEnvController : MonoBehaviour
         RenderersList.Add(purpleGoalRenderer);
 
         volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
+        behaviorStatistics = FindFirstObjectByType<BehaviorStatistics>();
 
         blueAgents = blueManager.GetComponent<VolleyballManager>().GetAgents();
         purpleAgents = purpleManager.GetComponent<VolleyballManager>().GetAgents();
@@ -97,6 +98,47 @@ public class VolleyballEnvController : MonoBehaviour
 
     }
 
+    public Team GetOpponentTeam(Team team)
+    {
+        if (team == Team.Blue)
+        {
+            return Team.Purple;
+        }
+        else if (team == Team.Purple)
+        {
+            return Team.Blue;
+        }
+        else
+        {
+            return Team.Default;
+        }
+    }
+
+    private void UpdateWinLoseStatistics(Team winner)
+    {
+        if (blueAgents[0].BehaviorNameEquals("1v1") && purpleAgents[0].BehaviorNameEquals("1v1")) {
+            if (blueAgents[0].GetModelName() == purpleAgents[0].GetModelName()) {
+                return;
+            }
+        }
+
+        if (winner == Team.Blue)
+        {
+            blueAgents.ForEach(agent => behaviorStatistics.Win(agent));
+            purpleAgents.ForEach(agent => behaviorStatistics.Lose(agent));
+        }
+        else if (winner == Team.Purple)
+        {
+            blueAgents.ForEach(agent => behaviorStatistics.Lose(agent));
+            purpleAgents.ForEach(agent => behaviorStatistics.Win(agent));
+        }
+        else
+        {
+            blueAgents.ForEach(agent => behaviorStatistics.Tie(agent));
+            purpleAgents.ForEach(agent => behaviorStatistics.Tie(agent));
+        }
+    }
+
     /// <summary>
     /// Resolves scenarios when ball enters a trigger and assigns rewards.
     /// Example reward functions are shown below.
@@ -111,6 +153,8 @@ public class VolleyballEnvController : MonoBehaviour
                 if (lastHitterAgent != null && lastHitterAgent.BehaviorNameEquals("1v1")) {
                     lastHitterAgent.AddReward(-0.009f);
                 }
+
+                UpdateWinLoseStatistics(GetOpponentTeam(lastHitterTeam));
 
                 // end episode
                 EndAllEpisodes();
@@ -141,6 +185,8 @@ public class VolleyballEnvController : MonoBehaviour
                         lastHitterAgent.AddReward(1f);
                     }
                 }
+
+                UpdateWinLoseStatistics(Team.Blue);
 
                 // turn floor blue
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
@@ -174,6 +220,8 @@ public class VolleyballEnvController : MonoBehaviour
                         lastHitterAgent.AddReward(1f);
                     }
                 }
+
+                UpdateWinLoseStatistics(Team.Purple);
 
                 // turn floor purple
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));

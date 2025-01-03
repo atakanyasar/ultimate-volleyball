@@ -4,6 +4,7 @@ using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Policies;
 using System;
+using Unity.Sentis;
 
 public class VolleyballAgent : Agent
 {
@@ -34,6 +35,7 @@ public class VolleyballAgent : Agent
 
     public Vector3 MoveToTarget { get => moveToTarget; set => moveToTarget = value; }
     public bool ActiveTarget { get => activeTarget; set => activeTarget = value; }
+    public BehaviorParameters BehaviorParameters { get => behaviorParameters; set => behaviorParameters = value; }
 
     void Start()
     {
@@ -43,7 +45,7 @@ public class VolleyballAgent : Agent
     public override void Initialize()
     {
         volleyballSettings = FindFirstObjectByType<VolleyballSettings>();
-        behaviorParameters = gameObject.GetComponent<BehaviorParameters>();
+        BehaviorParameters = gameObject.GetComponent<BehaviorParameters>();
 
         agentRb = GetComponent<Rigidbody>();
         ballRb = ball.GetComponent<Rigidbody>();
@@ -61,9 +63,14 @@ public class VolleyballAgent : Agent
         resetParams = Academy.Instance.EnvironmentParameters;
     }
 
+    public string GetModelName()
+    {
+        return BehaviorParameters.Model.name;
+    }
+
     public bool BehaviorNameEquals(string name)
     {
-        return behaviorParameters.BehaviorName == name;
+        return BehaviorParameters.BehaviorName == name;
     }
 
     /// <summary>
@@ -206,7 +213,7 @@ public class VolleyballAgent : Agent
         MoveAgent(actionBuffers.DiscreteActions);
         var currentDistance = Vector3.Distance(this.transform.position, this.MoveToTarget);
 
-        if (behaviorParameters.BehaviorName == "MoveTo") {
+        if (BehaviorParameters.BehaviorName == "MoveTo") {
             if (this.ActiveTarget) {
                 // relative to manager
                 this.MoveToTargetPlane.transform.position = this.MoveToTarget;
@@ -231,7 +238,7 @@ public class VolleyballAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
 
-        if (behaviorParameters.BehaviorName == "MoveTo") {
+        if (BehaviorParameters.BehaviorName == "MoveTo") {
             // Add Move To Target position (3 floats)
             sensor.AddObservation(this.MoveToTarget - this.transform.position);
 
@@ -240,7 +247,7 @@ public class VolleyballAgent : Agent
             return;
         }
 
-        else if (behaviorParameters.BehaviorName == "MoveToBall" || behaviorParameters.BehaviorName == "1v1") {
+        else if (BehaviorParameters.BehaviorName == "MoveToBall" || BehaviorParameters.BehaviorName == "1v1") {
             // Agent rotation (1 float)
             sensor.AddObservation(this.transform.rotation.y);
 

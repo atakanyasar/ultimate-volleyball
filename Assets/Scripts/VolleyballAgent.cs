@@ -65,6 +65,10 @@ public class VolleyballAgent : Agent
 
     public string GetModelName()
     {
+        if (BehaviorParameters.Model == null)
+        {
+            return "None";
+        }
         return BehaviorParameters.Model.name;
     }
 

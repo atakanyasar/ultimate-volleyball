@@ -1,0 +1,8 @@
+{'Volleyball_Random': {'gamesPlayed': 515, 'winRate': 37,28156, 'touches': 43, 'missRate': 24,7678, 'sendRate': 6,976744, 'mistakeRate': 83,72093}}
+{'Volleyball_SelfPlay': {'gamesPlayed': 509, 'winRate': 71,31631, 'touches': 539, 'missRate': 6,849315, 'sendRate': 56,95733, 'mistakeRate': 25,04638}}
+{'1v1-lr=0.01-999993': {'gamesPlayed': 537, 'winRate': 38,73371, 'touches': 216, 'missRate': 27,7439, 'sendRate': 24,07407, 'mistakeRate': 69,90741}}
+{'1v1-lr=0.01-1999998': {'gamesPlayed': 524, 'winRate': 44,84733, 'touches': 239, 'missRate': 29,86111, 'sendRate': 36,82008, 'mistakeRate': 58,99582}}
+{'1v1-lr=0.01-2499990': {'gamesPlayed': 509, 'winRate': 45,3831, 'touches': 234, 'missRate': 30,21583, 'sendRate': 38,88889, 'mistakeRate': 58,11966}}
+{'1v1-lr=0.001-10-hours': {'gamesPlayed': 523, 'winRate': 54,68451, 'touches': 374, 'missRate': 10,54852, 'sendRate': 42,51337, 'mistakeRate': 45,18716}}
+{'1v1-lr=0.001-13499989': {'gamesPlayed': 501, 'winRate': 56,68663, 'touches': 333, 'missRate': 13,82488, 'sendRate': 46,54655, 'mistakeRate': 40,54054}}
+{'1v1-lr=0.001-14854044': {'gamesPlayed': 536, 'winRate': 51,6791, 'touches': 404, 'missRate': 7,335907, 'sendRate': 41,58416, 'mistakeRate': 46,53465}}

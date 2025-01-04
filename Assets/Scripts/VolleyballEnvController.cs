@@ -88,6 +88,8 @@ public class VolleyballEnvController : MonoBehaviour
         lastHitterTeam = team;
         lastHitterAgent = agent;
 
+        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.TouchBall);
+
         if (lastHitterAgent.BehaviorNameEquals("MoveToBall")) {
             agent.AddReward(1.0f);
         }
@@ -116,11 +118,11 @@ public class VolleyballEnvController : MonoBehaviour
 
     private void UpdateWinLoseStatistics(Team winner)
     {
-        if (blueAgents[0].BehaviorNameEquals("1v1") && purpleAgents[0].BehaviorNameEquals("1v1")) {
-            if (blueAgents[0].GetModelName() == purpleAgents[0].GetModelName()) {
-                return;
-            }
-        }
+        // if (blueAgents[0].BehaviorNameEquals("1v1") && purpleAgents[0].BehaviorNameEquals("1v1")) {
+        //     if (blueAgents[0].GetModelName() == purpleAgents[0].GetModelName()) {
+        //         return;
+        //     }
+        // }
 
         if (winner == Team.Blue)
         {
@@ -154,6 +156,10 @@ public class VolleyballEnvController : MonoBehaviour
                     lastHitterAgent.AddReward(-0.009f);
                 }
 
+                if (lastHitterAgent != null) {
+                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
+                }
+
                 UpdateWinLoseStatistics(GetOpponentTeam(lastHitterTeam));
 
                 // end episode
@@ -176,6 +182,11 @@ public class VolleyballEnvController : MonoBehaviour
                             agent.AddReward(-0.009f);
                         }
                     }
+
+                    if (lastHitterTeam == Team.Blue)
+                    {
+                        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
+                    }
                 }
 
                 // reward for blue agent
@@ -184,6 +195,11 @@ public class VolleyballEnvController : MonoBehaviour
                     if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                         lastHitterAgent.AddReward(1f);
                     }
+                }
+
+                if (lastHitterTeam == Team.Purple)
+                {
+                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
                 }
 
                 UpdateWinLoseStatistics(Team.Blue);
@@ -211,6 +227,11 @@ public class VolleyballEnvController : MonoBehaviour
                             agent.AddReward(-0.009f);
                         }
                     }
+
+                    if (lastHitterTeam == Team.Purple)
+                    {
+                        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
+                    }
                 }
 
                 // reward for purple agent
@@ -219,6 +240,11 @@ public class VolleyballEnvController : MonoBehaviour
                     if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                         lastHitterAgent.AddReward(1f);
                     }
+                }
+
+                if (lastHitterTeam == Team.Blue)
+                {
+                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
                 }
 
                 UpdateWinLoseStatistics(Team.Purple);
@@ -238,6 +264,8 @@ public class VolleyballEnvController : MonoBehaviour
                     if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                         lastHitterAgent.AddReward(0.1f);
                     }
+
+                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.SendBall);
                 }
                 break;
 
@@ -249,6 +277,8 @@ public class VolleyballEnvController : MonoBehaviour
                     if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                         lastHitterAgent.AddReward(0.1f);
                     }
+
+                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.SendBall);
                 }
                 break;
         }

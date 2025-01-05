@@ -48,10 +48,10 @@ public class BehaviorStatistics : MonoBehaviour
     private int updateCounter = 0;
 
 
-    private void SetRandomModel(VolleyballAgent agent)
+    private void SetRandomModel(List<VolleyballAgent> agents)
     {
         var randomModel = modelAssets[Random.Range(0, modelAssets.Count)];
-        agent.SetModel("1v1", randomModel);
+        agents.ForEach(agent => agent.SetModel("1v1", randomModel));
     }
 
     private void Start()
@@ -68,71 +68,68 @@ public class BehaviorStatistics : MonoBehaviour
             var blueAgents = volleyballArea.blueManager.GetComponent<VolleyballManager>().GetAgents();
             var purpleAgents = volleyballArea.purpleManager.GetComponent<VolleyballManager>().GetAgents();
 
-            blueAgents.ForEach(SetRandomModel);
-            purpleAgents.ForEach(SetRandomModel);
+            SetRandomModel(blueAgents);
+            SetRandomModel(purpleAgents);
         }
     }
 
-    public void OnStatisticEvent(VolleyballEnvController env, VolleyballAgent agent, StatisticEvent statisticEvent)
+    public void OnStatisticEvent(VolleyballEnvController env, List<VolleyballAgent> agents, StatisticEvent statisticEvent)
     {
         if (!keepStats) return;
 
         switch (statisticEvent)
         {
             case StatisticEvent.Win:
-                Win(agent);
+                agents.ForEach(agent => Win(agent));
+                SetRandomModel(agents);
                 break;
             case StatisticEvent.Lose:
-                Lose(agent);
+                agents.ForEach(agent => Lose(agent));
+                SetRandomModel(agents);
                 break;
             case StatisticEvent.Tie:
-                Tie(agent);
+                agents.ForEach(agent => Tie(agent));
+                SetRandomModel(agents);
                 break;
             case StatisticEvent.TouchBall:
-                TouchBall(agent);
+                agents.ForEach(agent => TouchBall(agent));
                 break;
             case StatisticEvent.MissBall:
-                MissBall(agent);
+                agents.ForEach(agent => MissBall(agent));
                 break;
             case StatisticEvent.SendBall:
-                SendBall(agent);
+                agents.ForEach(agent => SendBall(agent));
                 break;
             case StatisticEvent.MakeMistake:
-                MakeMistake(agent);
+                agents.ForEach(agent => MakeMistake(agent));
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
-    public void Win(VolleyballAgent winner) {
+    private void Win(VolleyballAgent winner) {
         if (!keepStats) return;
 
         statistics[winner.GetModelName()].wins++;
         statistics[winner.GetModelName()].gamesPlayed++;
-
-        SetRandomModel(winner);
     }
 
-    public void Lose(VolleyballAgent loser) {
+    private void Lose(VolleyballAgent loser) {
         if (!keepStats) return;
 
         statistics[loser.GetModelName()].losses++;
         statistics[loser.GetModelName()].gamesPlayed++;
-
-        SetRandomModel(loser);
     }
 
-    public void Tie(VolleyballAgent agent) {
+    private void Tie(VolleyballAgent agent) {
         if (!keepStats) return;
 
         statistics[agent.GetModelName()].ties++;
         statistics[agent.GetModelName()].gamesPlayed++;
-
-        SetRandomModel(agent);
     }
 
-    public void TouchBall(VolleyballAgent agent) {
+    private void TouchBall(VolleyballAgent agent) {
         if (!keepStats) return;
 
         statistics[agent.GetModelName()].touches++;
@@ -190,15 +187,14 @@ public class BehaviorStatistics : MonoBehaviour
                 float missrate = (float)value.misses / value.losses * 100;
                 float sendrate = (float)value.sendBalls / value.touches * 100;
                 float mistakeRate = (float)value.mistakes / value.touches * 100;
+                float touchesPerGame = (float)value.touches / value.gamesPlayed;
 
-                Debug.Log($"{key}: {value.gamesPlayed} games played, win rate {winrate}%, {value.touches} touches, {missrate}% lose caused by miss, {sendrate}% successfull sends, {mistakeRate}% mistakes per touch"); 
+                Debug.Log($"{key}: {value.gamesPlayed} games played, win rate {winrate}%, {touchesPerGame} touches per game, {missrate}% lose caused by miss, {sendrate}% successful sends, {mistakeRate}% mistakes per touch"); 
 
-                string logLine = $"{{'{key}': {{'gamesPlayed': {value.gamesPlayed}, 'winRate': {winrate}, 'touches': {value.touches}, 'missRate': {missrate}, 'sendRate': {sendrate}, 'mistakeRate': {mistakeRate}}}}}\n";
+                string logLine = $"{{'{key}': {{'gamesPlayed': {value.gamesPlayed}, 'winRate': {winrate}, 'touchesPerGame': {touchesPerGame}, 'missRate': {missrate}, 'sendRate': {sendrate}, 'mistakeRate': {mistakeRate}}}}}\n";
                 byte[] logLineBytes = System.Text.Encoding.ASCII.GetBytes(logLine);
                 statisticsLogFileStream.Write(logLineBytes, 0, logLineBytes.Length);
                 statisticsLogFileStream.Flush();
-
-
             }
 
             statisticsLogFileStream.Close();

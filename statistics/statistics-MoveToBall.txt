@@ -1,0 +1,12 @@
+{'Volleyball_Random': {'gamesPlayed': 1536, 'winRate': 44,27083, 'touchesPerGame': 0,04817708, 'missRate': 90,88785, 'sendRate': 41,89189, 'mistakeRate': 52,7027}}
+{'Volleyball_SelfPlay': {'gamesPlayed': 1572, 'winRate': 66,92112, 'touchesPerGame': 0,4930025, 'missRate': 24,61539, 'sendRate': 50,96774, 'mistakeRate': 25,29032}}
+{'1v1-lr=0.001-14854044': {'gamesPlayed': 1598, 'winRate': 60,70087, 'touchesPerGame': 0,3066333, 'missRate': 37,57962, 'sendRate': 43,2653, 'mistakeRate': 40}}
+{'MoveToBall-2-hours': {'gamesPlayed': 1570, 'winRate': 44,96815, 'touchesPerGame': 0,0388535, 'missRate': 92,59259, 'sendRate': 40,98361, 'mistakeRate': 52,45901}}
+{'MoveToBall-3-hours': {'gamesPlayed': 1580, 'winRate': 43,92405, 'touchesPerGame': 2,194304, 'missRate': 16,02709, 'sendRate': 0,7210845, 'mistakeRate': 10,72974}}
+{'MoveToBall-4-hours': {'gamesPlayed': 1692, 'winRate': 46,3357, 'touchesPerGame': 2,147754, 'missRate': 9,471366, 'sendRate': 1,018162, 'mistakeRate': 11,30985}}
+{'MoveToBall-5-hours': {'gamesPlayed': 1644, 'winRate': 46,83698, 'touchesPerGame': 2,467762, 'missRate': 10,57471, 'sendRate': 0,8134089, 'mistakeRate': 9,588366}}
+{'MoveToBall-5.5-hours': {'gamesPlayed': 1616, 'winRate': 46,16337, 'touchesPerGame': 2,939356, 'missRate': 9,425287, 'sendRate': 0,7578948, 'mistakeRate': 8,294737}}
+
+
+
+

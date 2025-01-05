@@ -88,12 +88,12 @@ public class VolleyballEnvController : MonoBehaviour
         lastHitterTeam = team;
         lastHitterAgent = agent;
 
-        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.TouchBall);
+        behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> { agent }, StatisticEvent.TouchBall);
 
         if (lastHitterAgent.BehaviorNameEquals("1v1")) {
             agent.AddReward(0.01f);
         }
-        
+
         if (lastHitterAgent.BehaviorNameEquals("MoveToBall")) {
             agent.AddReward(1.0f);
 
@@ -147,18 +147,18 @@ public class VolleyballEnvController : MonoBehaviour
 
         if (winner == Team.Blue)
         {
-            blueAgents.ForEach(agent => behaviorStatistics.Win(agent));
-            purpleAgents.ForEach(agent => behaviorStatistics.Lose(agent));
+            behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Win);
+            behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Lose);
         }
         else if (winner == Team.Purple)
         {
-            blueAgents.ForEach(agent => behaviorStatistics.Lose(agent));
-            purpleAgents.ForEach(agent => behaviorStatistics.Win(agent));
+            behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Lose);
+            behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Win);
         }
         else
         {
-            blueAgents.ForEach(agent => behaviorStatistics.Tie(agent));
-            purpleAgents.ForEach(agent => behaviorStatistics.Tie(agent));
+            behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Tie);
+            behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Tie);
         }
     }
 
@@ -178,7 +178,7 @@ public class VolleyballEnvController : MonoBehaviour
                 }
 
                 if (lastHitterAgent != null) {
-                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
+                    behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {lastHitterAgent}, StatisticEvent.MakeMistake);
                 }
 
                 UpdateWinLoseStatistics(GetOpponentTeam(lastHitterTeam));
@@ -225,7 +225,7 @@ public class VolleyballEnvController : MonoBehaviour
                         lastHitterAgent.AddReward(0.1f);
                     }
 
-                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.SendBall);
+                    behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {lastHitterAgent}, StatisticEvent.SendBall);
                 }
                 break;
 
@@ -238,7 +238,7 @@ public class VolleyballEnvController : MonoBehaviour
                         lastHitterAgent.AddReward(0.1f);
                     }
 
-                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.SendBall);
+                    behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {lastHitterAgent}, StatisticEvent.SendBall);
                 }
                 break;
         }
@@ -250,7 +250,6 @@ public class VolleyballEnvController : MonoBehaviour
         // loser team misses ball
         if (lastHitterTeam != loserTeam) {
             GetTeamPlayers(loserTeam).ForEach(agent => {
-                behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
 
                 if (agent.BehaviorNameEquals("1v1")) {
                     agent.AddReward(-1f);
@@ -261,6 +260,9 @@ public class VolleyballEnvController : MonoBehaviour
                     agent.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
                 }
             });
+            
+            behaviorStatistics.OnStatisticEvent(this, GetTeamPlayers(loserTeam), StatisticEvent.MissBall);
+
         }
 
         // last hitter agent scores into goal with successfull hit
@@ -274,7 +276,7 @@ public class VolleyballEnvController : MonoBehaviour
         // last hitter agent makes mistake and scores into opponents goal
         if (lastHitterTeam == loserTeam)
         {
-            behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
+            behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {lastHitterAgent}, StatisticEvent.MakeMistake);
             
             if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                 lastHitterAgent.AddReward(-0.009f);

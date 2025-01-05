@@ -558,7 +558,7 @@ MonoBehaviour:
   ball: {fileID: 1317026924745720295}
   blueGoal: {fileID: 1254629476493177227}
   purpleGoal: {fileID: 5132028400407904075}
-  MaxEnvironmentSteps: 5000
+  MaxEnvironmentSteps: 3000
 --- !u!1001 &468329943658831739
 PrefabInstance:
   m_ObjectHideFlags: 0

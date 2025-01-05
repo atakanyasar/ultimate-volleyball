@@ -90,13 +90,18 @@ public class VolleyballEnvController : MonoBehaviour
 
         behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.TouchBall);
 
-        if (lastHitterAgent.BehaviorNameEquals("MoveToBall")) {
-            agent.AddReward(1.0f);
-        }
-
         if (lastHitterAgent.BehaviorNameEquals("1v1")) {
             agent.AddReward(0.01f);
         }
+        
+        if (lastHitterAgent.BehaviorNameEquals("MoveToBall")) {
+            agent.AddReward(1.0f);
+
+            if (volleyballSettings.trainingModeName == "MoveToBall") {
+                EndAllEpisodes();
+            }
+        }
+
 
     }
 
@@ -113,6 +118,22 @@ public class VolleyballEnvController : MonoBehaviour
         else
         {
             return Team.Default;
+        }
+    }
+
+    public List<VolleyballAgent> GetTeamPlayers(Team team)
+    {
+        if (team == Team.Blue)
+        {
+            return blueAgents;
+        }
+        else if (team == Team.Purple)
+        {
+            return purpleAgents;
+        }
+        else
+        {
+            return null;
         }
     }
 
@@ -168,41 +189,10 @@ public class VolleyballEnvController : MonoBehaviour
 
             case Event.HitBlueGoal:
                 // blue wins
+                ResolveHitIntoGoal(Team.Blue);
+
                 blueManager.GetComponent<VolleyballManager>().AddReward(1f);
                 purpleManager.GetComponent<VolleyballManager>().AddReward(-1f);
-
-                // penalty to purple agent
-                foreach (var agent in purpleAgents)
-                {
-                    if (agent.BehaviorNameEquals("1v1")) {
-                        if (lastHitterTeam == Team.Blue) {
-                            agent.AddReward(-1f);
-                        }
-                        else {
-                            agent.AddReward(-0.009f);
-                        }
-                    }
-
-                    if (lastHitterTeam == Team.Blue)
-                    {
-                        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
-                    }
-                }
-
-                // reward for blue agent
-                if (lastHitterTeam == Team.Blue)
-                {
-                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
-                        lastHitterAgent.AddReward(1f);
-                    }
-                }
-
-                if (lastHitterTeam == Team.Purple)
-                {
-                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
-                }
-
-                UpdateWinLoseStatistics(Team.Blue);
 
                 // turn floor blue
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
@@ -213,47 +203,17 @@ public class VolleyballEnvController : MonoBehaviour
 
             case Event.HitPurpleGoal:
                 // purple wins
+                ResolveHitIntoGoal(Team.Purple);
+
                 purpleManager.GetComponent<VolleyballManager>().AddReward(1f);
                 blueManager.GetComponent<VolleyballManager>().AddReward(-1f);
-
-                // penalty to blue agent
-                foreach (var agent in blueAgents)
-                {
-                    if (agent.BehaviorNameEquals("1v1")) {
-                        if (lastHitterTeam == Team.Purple) {          
-                            agent.AddReward(-1f);
-                        }
-                        else {
-                            agent.AddReward(-0.009f);
-                        }
-                    }
-
-                    if (lastHitterTeam == Team.Purple)
-                    {
-                        behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
-                    }
-                }
-
-                // reward for purple agent
-                if (lastHitterTeam == Team.Purple)
-                {
-                    if (lastHitterAgent.BehaviorNameEquals("1v1")) {
-                        lastHitterAgent.AddReward(1f);
-                    }
-                }
-
-                if (lastHitterTeam == Team.Blue)
-                {
-                    behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
-                }
-
-                UpdateWinLoseStatistics(Team.Purple);
 
                 // turn floor purple
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));
 
                 // end episode
                 EndAllEpisodes();
+
                 break;
 
             case Event.HitIntoBlueArea:
@@ -282,6 +242,47 @@ public class VolleyballEnvController : MonoBehaviour
                 }
                 break;
         }
+    }
+
+    private void ResolveHitIntoGoal(Team winnerTeam) {
+        Team loserTeam = GetOpponentTeam(winnerTeam);
+
+        // loser team misses ball
+        if (lastHitterTeam != loserTeam) {
+            GetTeamPlayers(loserTeam).ForEach(agent => {
+                behaviorStatistics.OnStatisticEvent(this, agent, StatisticEvent.MissBall);
+
+                if (agent.BehaviorNameEquals("1v1")) {
+                    agent.AddReward(-1f);
+                }
+
+                if (agent.BehaviorNameEquals("MoveToBall")) {
+                    // penalty according to distance from ball
+                    agent.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
+                }
+            });
+        }
+
+        // last hitter agent scores into goal with successfull hit
+        if (lastHitterTeam == winnerTeam)
+        {
+            if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                lastHitterAgent.AddReward(1f);
+            }
+        }
+
+        // last hitter agent makes mistake and scores into opponents goal
+        if (lastHitterTeam == loserTeam)
+        {
+            behaviorStatistics.OnStatisticEvent(this, lastHitterAgent, StatisticEvent.MakeMistake);
+            
+            if (lastHitterAgent.BehaviorNameEquals("1v1")) {
+                lastHitterAgent.AddReward(-0.009f);
+            }
+        }
+
+        UpdateWinLoseStatistics(winnerTeam);
+
     }
 
     /// <summary>
@@ -330,7 +331,9 @@ public class VolleyballEnvController : MonoBehaviour
 
     public void EndAllEpisodes()
     {
-        // return; // For Player MoveTo training mode
+        if (volleyballSettings.trainingModeName == "MoveTo") {
+            return;
+        }
         
         for (int i = 0; i < blueAgents.Count; i++)
         {
@@ -357,11 +360,9 @@ public class VolleyballEnvController : MonoBehaviour
 
         foreach (var agent in blueAgents)
         {
-            agent.EpisodeInterrupted();
-
             // randomise starting positions and rotations
-            var randomPosX = Random.Range(-2f, 2f);
-            var randomPosZ = Random.Range(-2f, 2f);
+            var randomPosX = Random.Range(-5f, 5f);
+            var randomPosZ = Random.Range(-5f, 5f);
             var randomPosY = Random.Range(0.5f, 3.75f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
@@ -373,11 +374,10 @@ public class VolleyballEnvController : MonoBehaviour
 
         foreach (var agent in purpleAgents)
         {
-            agent.EpisodeInterrupted();
 
             // randomise starting positions and rotations
-            var randomPosX = Random.Range(-2f, 2f);
-            var randomPosZ = Random.Range(-2f, 2f);
+            var randomPosX = Random.Range(-5f, 5f);
+            var randomPosZ = Random.Range(-5f, 5f);
             var randomPosY = Random.Range(0.5f, 3.75f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
@@ -396,8 +396,8 @@ public class VolleyballEnvController : MonoBehaviour
     /// </summary>
     void ResetBall()
     {
-        var randomPosX = Random.Range(-2f, 2f);
-        var randomPosZ = Random.Range(6f, 10f);
+        var randomPosX = Random.Range(-volleyballSettings.ballResetMaxLocation, volleyballSettings.ballResetMaxLocation);
+        var randomPosZ = Random.Range(7f - volleyballSettings.ballResetMaxLocation, 7f + volleyballSettings.ballResetMaxLocation);
         var randomPosY = Random.Range(6f, 8f);
 
         var randomVelX = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);

@@ -18,5 +18,7 @@ public class VolleyballSettings : MonoBehaviour
     public float fallingForce = 150;
 
     public float ballResetMaxVelocity = 10f;
+    public float ballResetMaxLocation = 2f;
+    public string trainingModeName = null;
      
 }

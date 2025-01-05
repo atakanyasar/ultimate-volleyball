@@ -175,7 +175,12 @@ public class VolleyballAgent : Agent
         if (jumpAction == 1) {
 
             // Penalty for unecessary jumping
-            AddReward(-0.0001f);
+            if (BehaviorNameEquals("MoveTo") || BehaviorNameEquals("MoveToBall")) {
+                AddReward(-0.2f);
+            }
+            else {
+                AddReward(-0.0001f);
+            }
 
             if (((jumpingTime <= 0f) && grounded))
             {
@@ -251,7 +256,7 @@ public class VolleyballAgent : Agent
             return;
         }
 
-        else if (BehaviorParameters.BehaviorName == "MoveToBall" || BehaviorParameters.BehaviorName == "1v1") {
+        else {
             // Agent rotation (1 float)
             sensor.AddObservation(this.transform.rotation.y);
 

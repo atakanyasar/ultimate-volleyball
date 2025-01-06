@@ -13,7 +13,8 @@ public enum SubTask
     MoveToBall,
     HitBall,
     BlockBall,
-    MoveToPosition
+    MoveToPosition,
+    SendBallToTarget,
 }
 
 public class VolleyballManager : Agent
@@ -52,22 +53,32 @@ public class VolleyballManager : Agent
         if (task == SubTask.MoveToPosition) {
             if (agent.ActiveTarget == false) {
                 agent.ActiveTarget = true;
-                agent.MoveToTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
-                agent.MoveToTargetPlane.SetActive(true);
-                agent.MoveToTargetPlane.transform.localPosition = agent.MoveToTarget;
+                agent.ManagerTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
+                agent.ManagerTargetPlane.SetActive(true);
             } 
         }
         if (task == SubTask.MoveToBall) {
 
         }
 
+        if (task == SubTask.SendBallToTarget) {
+            if (agent.ActiveTarget == false) {
+                agent.ActiveTarget = true;
+                agent.ManagerTarget = GetComponentInParent<VolleyballEnvController>().transform.position + new Vector3(Random.Range(-6.0f, 6.0f), 0.5f, Random.Range(-13.0f, 13.0f));
+                agent.ManagerTargetPlane.SetActive(true);
+            } 
+        } 
+
     }
 
     public override void OnActionReceived(ActionBuffers actions) {
-        // apply actions to each agent
-        // foreach (VolleyballAgent agent in agents) {
-        //     GiveTask(agent, (SubTask)actions.DiscreteActions[0]);
-        // }
+        foreach (VolleyballAgent agent in agents) {
+            if (agent.BehaviorNameEquals("SendBallTo")) {
+                if (agent.ActiveTarget) {
+                    agent.ManagerTargetPlane.transform.position = agent.ManagerTarget;
+                }
+            }
+        }
     }
 
     public override void CollectObservations(VectorSensor sensor) {
@@ -105,7 +116,9 @@ public class VolleyballManager : Agent
 
     public override void Heuristic(in ActionBuffers actionsOut) {
         foreach (VolleyballAgent agent in agents) {
-            GiveTask(agent, SubTask.SinglePlayer);   
+            if (agent.BehaviorNameEquals("SendBallTo")) {
+                GiveTask(agent, SubTask.SendBallToTarget);   
+            }
         }
     }
 

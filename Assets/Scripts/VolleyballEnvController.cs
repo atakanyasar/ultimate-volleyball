@@ -23,7 +23,7 @@ public enum Event
 
 public class VolleyballEnvController : MonoBehaviour
 {
-    int ballSpawnSide;
+    public int ballSpawnSide = 0;
 
     VolleyballSettings volleyballSettings;
     BehaviorStatistics behaviorStatistics;
@@ -63,7 +63,9 @@ public class VolleyballEnvController : MonoBehaviour
         // Starting ball spawn side
         // -1 = spawn blue side, 1 = spawn purple side
         var spawnSideList = new List<int> { -1, 1 };
-        ballSpawnSide = spawnSideList[Random.Range(0, 2)];
+        if (ballSpawnSide == 0) {
+            ballSpawnSide = spawnSideList[Random.Range(0, 2)];
+        }
 
         // Render ground to visualise which agent scored
         blueGoalRenderer = blueGoal.GetComponent<Renderer>();
@@ -90,6 +92,8 @@ public class VolleyballEnvController : MonoBehaviour
 
         behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> { agent }, StatisticEvent.TouchBall);
 
+        ball.GetComponent<VolleyballController>().highestPoint = 0;
+
         if (lastHitterAgent.BehaviorNameEquals("1v1")) {
             agent.AddReward(0.01f);
         }
@@ -101,7 +105,6 @@ public class VolleyballEnvController : MonoBehaviour
                 EndAllEpisodes();
             }
         }
-
 
     }
 
@@ -175,6 +178,10 @@ public class VolleyballEnvController : MonoBehaviour
                 // apply penalty to agent
                 if (lastHitterAgent != null && lastHitterAgent.BehaviorNameEquals("1v1")) {
                     lastHitterAgent.AddReward(-0.009f);
+                }
+
+                if (lastHitterAgent != null && lastHitterAgent.BehaviorNameEquals("SendBallTo")) {
+                    lastHitterAgent.AddReward(-1f);
                 }
 
                 if (lastHitterAgent != null) {
@@ -259,6 +266,11 @@ public class VolleyballEnvController : MonoBehaviour
                     // penalty according to distance from ball
                     agent.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
                 }
+
+                if (agent.BehaviorNameEquals("SendBallTo")) {
+                    // penalty according to distance from target
+                    agent.AddReward(-1f);
+                }
             });
             
             behaviorStatistics.OnStatisticEvent(this, GetTeamPlayers(loserTeam), StatisticEvent.MissBall);
@@ -281,6 +293,18 @@ public class VolleyballEnvController : MonoBehaviour
             if (lastHitterAgent.BehaviorNameEquals("1v1")) {
                 lastHitterAgent.AddReward(-0.009f);
             }
+        }
+
+        // reward for last hitter agent who tries to send ball to target
+        if (lastHitterAgent != null && lastHitterAgent.BehaviorNameEquals("SendBallTo")) {
+            float distanceToTarget = Vector3.Distance(ball.transform.position, lastHitterAgent.ManagerTarget);
+            if (distanceToTarget < 1.5f) {
+                lastHitterAgent.AddReward(1f);
+            }
+            else {
+                lastHitterAgent.AddReward(-0.025f * distanceToTarget);
+            }
+            lastHitterAgent.AddReward(ball.GetComponent<VolleyballController>().highestPoint * 0.01f);
         }
 
         UpdateWinLoseStatistics(winnerTeam);
@@ -365,7 +389,7 @@ public class VolleyballEnvController : MonoBehaviour
             // randomise starting positions and rotations
             var randomPosX = Random.Range(-5f, 5f);
             var randomPosZ = Random.Range(-5f, 5f);
-            var randomPosY = Random.Range(0.5f, 3.75f); // depends on jump height
+            var randomPosY = Random.Range(0.5f, 1f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
             agent.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
@@ -380,7 +404,7 @@ public class VolleyballEnvController : MonoBehaviour
             // randomise starting positions and rotations
             var randomPosX = Random.Range(-5f, 5f);
             var randomPosZ = Random.Range(-5f, 5f);
-            var randomPosY = Random.Range(0.5f, 3.75f); // depends on jump height
+            var randomPosY = Random.Range(0.5f, 1f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
             agent.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
@@ -400,7 +424,7 @@ public class VolleyballEnvController : MonoBehaviour
     {
         var randomPosX = Random.Range(-volleyballSettings.ballResetMaxLocation, volleyballSettings.ballResetMaxLocation);
         var randomPosZ = Random.Range(7f - volleyballSettings.ballResetMaxLocation, 7f + volleyballSettings.ballResetMaxLocation);
-        var randomPosY = Random.Range(6f, 8f);
+        var randomPosY = Random.Range(5f, 8f);
 
         var randomVelX = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);
         var randomVelY = Random.Range(-volleyballSettings.ballResetMaxVelocity, volleyballSettings.ballResetMaxVelocity);
@@ -419,7 +443,31 @@ public class VolleyballEnvController : MonoBehaviour
             ball.transform.localPosition = new Vector3(randomPosX, randomPosY, -1 * randomPosZ);
         }
 
+        if (volleyballSettings.trainingModeName == "SendBallTo") {
+            // revert ball spawn side
+            ballSpawnSide = -1 * ballSpawnSide; 
+
+            randomPosZ = Random.Range(-volleyballSettings.ballResetMaxLocation, volleyballSettings.ballResetMaxLocation);
+
+            randomPosX = (ballSpawnSide == -1 ? blueAgents[0].transform.position.x : purpleAgents[0].transform.position.x) + randomPosX;
+            randomPosZ = (ballSpawnSide == -1 ? blueAgents[0].transform.position.z : purpleAgents[0].transform.position.z) + randomPosZ;
+
+            ball.transform.position = new Vector3(randomPosX, randomPosY, randomPosZ);
+
+            blueAgents[0].GetComponent<Rigidbody>().velocity = new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f));
+            purpleAgents[0].GetComponent<Rigidbody>().velocity = new Vector3(Random.Range(-3f, 3f), 0, Random.Range(-3f, 3f));
+
+            blueAgents[0].ActiveTarget = false;
+            purpleAgents[0].ActiveTarget = false;
+            blueAgents[0].ManagerTargetPlane.SetActive(false);
+            purpleAgents[0].ManagerTargetPlane.SetActive(false);
+            blueAgents[0].ManagerTarget = blueAgents[0].transform.position;
+            purpleAgents[0].ManagerTarget = purpleAgents[0].transform.position;
+        }
+
         ballRb.angularVelocity = Vector3.zero;
         ballRb.velocity = new Vector3(randomVelX, randomVelY, randomVelZ);
+
+        ballRb.GetComponent<VolleyballController>().highestPoint = 0;
     }
 }

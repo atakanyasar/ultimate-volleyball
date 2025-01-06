@@ -10,11 +10,22 @@ public class VolleyballController : MonoBehaviour
     Collider purpleGoalCollider;
     Collider blueGoalCollider;
 
+    [HideInInspector]
+    public float highestPoint = 0;
+
     void Start()
     {
         envController = GetComponentInParent<VolleyballEnvController>();
         purpleGoalCollider = purpleGoal.GetComponent<Collider>();
         blueGoalCollider = blueGoal.GetComponent<Collider>();
+    }
+
+    void Update()
+    {
+        if (transform.position.y > highestPoint)
+        {
+            highestPoint = transform.position.y;
+        }
     }
 
     /// <summary>

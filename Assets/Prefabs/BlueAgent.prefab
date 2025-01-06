@@ -121,7 +121,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  MoveToTargetPlane: {fileID: 8126250173641487200}
+  ManagerTargetPlane: {fileID: 8126250173641487200}
 --- !u!65 &7957019193287326334
 BoxCollider:
   m_ObjectHideFlags: 0

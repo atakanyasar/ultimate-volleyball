@@ -260,7 +260,7 @@ public class VolleyballAgent : Agent
             // agent observations (9 floats)
             CollectAgentObservations(sensor);
 
-            // ball observations (7 floats)
+            // ball observations (8 floats)
             CollectBallObservations(sensor);
 
             // target observations (4 floats)
@@ -304,9 +304,9 @@ public class VolleyballAgent : Agent
         sensor.AddObservation(this.transform.rotation.y * agentRot);
 
         // Agent position (3 floats)
-        sensor.AddObservation(this.transform.position.x * agentRot);
-        sensor.AddObservation(this.transform.position.y);
-        sensor.AddObservation(this.transform.position.z * agentRot);
+        sensor.AddObservation(this.transform.localPosition.x * agentRot);
+        sensor.AddObservation(this.transform.localPosition.y);
+        sensor.AddObservation(this.transform.localPosition.z * agentRot);
 
         // Agent velocity (3 floats)
         sensor.AddObservation(agentRb.velocity.x * agentRot);
@@ -321,7 +321,7 @@ public class VolleyballAgent : Agent
     }
 
     /// <summary>
-    /// ball observations (7 floats)
+    /// ball observations (8 floats)
     /// </summary>
     /// <param name="sensor"></param>
     public void CollectBallObservations(VectorSensor sensor)
@@ -342,6 +342,9 @@ public class VolleyballAgent : Agent
         sensor.AddObservation(ballRb.velocity.y);
         sensor.AddObservation(ballRb.velocity.z*agentRot);
         sensor.AddObservation(ballRb.velocity.x*agentRot);
+
+        // Is agent last hitter (1 float)
+        sensor.AddObservation(envController.LastHitterAgent == this);
     }
 
     /// <summary>

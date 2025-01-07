@@ -32,8 +32,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4146884479419039917}
-  - {fileID: 4795574750840036243}
+  - {fileID: 7599063776928834707}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4963225062238124743
@@ -84,7 +83,8 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   teamId: 1
-  numSquares: 5
+  MoveToBallModel: {fileID: 0}
+  SendBallToModel: {fileID: 0}
 --- !u!114 &8601202742018230649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -100,13 +100,46 @@ MonoBehaviour:
   DecisionPeriod: 5
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
+--- !u!1 &3169979619589021044
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7599063776928834707}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7599063776928834707
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3169979619589021044}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 4146884479419039917}
+  - {fileID: 4795574750840036243}
+  m_Father: {fileID: 7601315498770753160}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &862104759395816692
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7601315498770753160}
+    m_TransformParent: {fileID: 7599063776928834707}
     m_Modifications:
     - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
       propertyPath: m_LocalPosition.x
@@ -150,7 +183,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4743298634900055231, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
       propertyPath: m_Name
-      value: PurpleAgent
+      value: PurpleAgentBehavior
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -168,7 +201,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7601315498770753160}
+    m_TransformParent: {fileID: 7599063776928834707}
     m_Modifications:
     - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
       propertyPath: m_LocalPosition.x
@@ -212,7 +245,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4743298634900055231, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
       propertyPath: m_Name
-      value: PurpleAgent (1)
+      value: PurpleAgentBehavior (1)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

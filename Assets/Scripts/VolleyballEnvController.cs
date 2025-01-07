@@ -25,11 +25,8 @@ public class VolleyballEnvController : MonoBehaviour
 {
     public int ballSpawnSide = 0;
 
-    VolleyballSettings volleyballSettings;
+    public VolleyballSettings volleyballSettings;
     BehaviorStatistics behaviorStatistics;
-
-    public List<string> behaviors;
-    public List<ModelAsset> modelAssets;
     
     public GameObject blueManager;
     public GameObject purpleManager;
@@ -89,32 +86,39 @@ public class VolleyballEnvController : MonoBehaviour
     /// </summary>
     public void UpdateLastHitter(Team team, VolleyballAgent agent)
     {
-        // penalty for double touching the ball
-        if (LastHitterAgent == agent && volleyballSettings.trainingModeName == "SendBallTo") {
-            if (LastHitterAgent.BehaviorNameEquals("SendBallTo")) {
+        // double touching the ball
+        if (LastHitterAgent == agent) {
+            if (LastHitterAgent.BehaviorNameEquals("SendBallTo") && volleyballSettings.trainingModeName == "SendBallTo") {
                 LastHitterAgent.AddReward(-0.75f);    
                 EndAllEpisodes();
+                return;
             }
+
+            GetTeamManager(team).AddReward(-0.2f);
         }
 
+        // update last hitter
         lastHitterTeam = team;
         LastHitterAgent = agent;
 
+        // TouchBall event
         behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> { agent }, StatisticEvent.TouchBall);
 
         ball.GetComponent<VolleyballController>().highestPoint = 0;
 
+        GetTeamManager(team).AddReward(0.1f);
+
         if (LastHitterAgent.BehaviorNameEquals("1v1")) {
             agent.AddReward(0.01f);
         }
-
-        if (LastHitterAgent.BehaviorNameEquals("MoveToBall")) {
+        else if (LastHitterAgent.BehaviorNameEquals("MoveToBall")) {
             agent.AddReward(1.0f);
 
             if (volleyballSettings.trainingModeName == "MoveToBall") {
                 EndAllEpisodes();
             }
         }
+        
 
     }
 
@@ -131,6 +135,22 @@ public class VolleyballEnvController : MonoBehaviour
         else
         {
             return Team.Default;
+        }
+    }
+
+    public VolleyballManager GetTeamManager(Team team)
+    {
+        if (team == Team.Blue)
+        {
+            return blueManager.GetComponent<VolleyballManager>();
+        }
+        else if (team == Team.Purple)
+        {
+            return purpleManager.GetComponent<VolleyballManager>();
+        }
+        else
+        {
+            return null;
         }
     }
 
@@ -157,21 +177,19 @@ public class VolleyballEnvController : MonoBehaviour
         //         return;
         //     }
         // }
-
-        if (winner == Team.Blue)
-        {
-            behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Win);
-            behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Lose);
-        }
-        else if (winner == Team.Purple)
-        {
-            behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Lose);
-            behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Win);
-        }
-        else
-        {
+        if (winner == Team.Default) {
             behaviorStatistics.OnStatisticEvent(this, blueAgents, StatisticEvent.Tie);
             behaviorStatistics.OnStatisticEvent(this, purpleAgents, StatisticEvent.Tie);
+        }
+        else {
+            behaviorStatistics.OnStatisticEvent(this, GetTeamPlayers(winner), StatisticEvent.Win);
+            behaviorStatistics.OnStatisticEvent(this, GetTeamPlayers(GetOpponentTeam(winner)), StatisticEvent.Lose);
+
+            // apply reward to winner team manager
+            GetTeamManager(winner).AddReward(1f);
+
+            // apply penalty to loser team manager
+            GetTeamManager(GetOpponentTeam(winner)).AddReward(-1f);
         }
     }
 
@@ -208,9 +226,6 @@ public class VolleyballEnvController : MonoBehaviour
                 // blue wins
                 ResolveHitIntoGoal(Team.Blue);
 
-                blueManager.GetComponent<VolleyballManager>().AddReward(1f);
-                purpleManager.GetComponent<VolleyballManager>().AddReward(-1f);
-
                 // turn floor blue
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.blueGoalMaterial, RenderersList, .5f));
 
@@ -221,9 +236,6 @@ public class VolleyballEnvController : MonoBehaviour
             case Event.HitPurpleGoal:
                 // purple wins
                 ResolveHitIntoGoal(Team.Purple);
-
-                purpleManager.GetComponent<VolleyballManager>().AddReward(1f);
-                blueManager.GetComponent<VolleyballManager>().AddReward(-1f);
 
                 // turn floor purple
                 StartCoroutine(GoalScoredSwapGroundMaterial(volleyballSettings.purpleGoalMaterial, RenderersList, .5f));
@@ -236,7 +248,7 @@ public class VolleyballEnvController : MonoBehaviour
             case Event.HitIntoBlueArea:
                 if (lastHitterTeam == Team.Purple)
                 {
-                    purpleManager.GetComponent<VolleyballManager>().AddReward(1f);
+                    GetTeamManager(Team.Purple).AddReward(0.25f);
 
                     if (LastHitterAgent.BehaviorNameEquals("1v1")) {
                         LastHitterAgent.AddReward(0.1f);
@@ -249,7 +261,7 @@ public class VolleyballEnvController : MonoBehaviour
             case Event.HitIntoPurpleArea:
                 if (lastHitterTeam == Team.Blue)
                 {
-                    blueManager.GetComponent<VolleyballManager>().AddReward(1f);
+                    GetTeamManager(Team.Blue).AddReward(0.25f);
 
                     if (LastHitterAgent.BehaviorNameEquals("1v1")) {
                         LastHitterAgent.AddReward(0.1f);

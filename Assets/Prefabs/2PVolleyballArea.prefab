@@ -141,6 +141,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 30, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1387033677798419213
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6366878023384367769}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6366878023384367769
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1387033677798419213}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7999127094293461491}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1691202050024249077
 GameObject:
   m_ObjectHideFlags: 0
@@ -547,12 +578,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7af6c6276ce87bd44982b9f5bfa24eb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  behaviors:
-  - Idle
-  - MoveToBall
-  modelAssets:
-  - {fileID: 0}
-  - {fileID: 0}
+  ballSpawnSide: 0
+  volleyballSettings: {fileID: 0}
   blueManager: {fileID: 3059935277788516616}
   purpleManager: {fileID: 3381977639170918473}
   ball: {fileID: 1317026924745720295}
@@ -578,6 +605,14 @@ PrefabInstance:
     - target: {fileID: 2923088103972165426, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
       propertyPath: m_Name
       value: PurpleManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 3541139827797486453, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+      propertyPath: m_Name
+      value: PurpleAgentB
+      objectReference: {fileID: 0}
+    - target: {fileID: 5342776915761967179, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+      propertyPath: m_Name
+      value: PurpleAgentBehavior
       objectReference: {fileID: 0}
     - target: {fileID: 5743278637857233543, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
       propertyPath: area
@@ -628,8 +663,15 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3541139827797486453, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 7601315498770753160, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6366878023384367769}
+    - targetCorrespondingSourceObject: {fileID: 7601315498770753160, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8877662362196875751}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
 --- !u!1 &3381977639170918473 stripped
@@ -771,6 +813,7 @@ MonoBehaviour:
   envController: {fileID: 0}
   purpleGoal: {fileID: 5132028400407904075}
   blueGoal: {fileID: 1254629476493177227}
+  highestPoint: 0
 --- !u!4 &1319780535009680813 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4974979531414260, guid: 60f4bdfb49a7840a2989bbd741e814f2, type: 3}
@@ -1193,6 +1236,76 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 6877529291662823371, guid: 7dbff1e80ec69d448ba82b0671822b42, type: 3}
   m_PrefabInstance: {fileID: 5162473188229192098}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &5280950093643894206
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7999127094293461491}
+    m_Modifications:
+    - target: {fileID: 1388349690717597628, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: area
+      value: 
+      objectReference: {fileID: 7954672815519958404}
+    - target: {fileID: 1388349690717597628, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: ball
+      value: 
+      objectReference: {fileID: 1317026924745720295}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4743298634900055231, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+      propertyPath: m_Name
+      value: PurpleAgentBehavior (1)
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+--- !u!4 &8877662362196875751 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3637359014413358169, guid: 5a15fca43aece7544b4aebc754a90f53, type: 3}
+  m_PrefabInstance: {fileID: 5280950093643894206}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5431031003882868924
 PrefabInstance:

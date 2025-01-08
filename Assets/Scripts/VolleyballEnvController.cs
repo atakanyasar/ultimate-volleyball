@@ -89,7 +89,7 @@ public class VolleyballEnvController : MonoBehaviour
         // double touching the ball
         if (LastHitterAgent == agent) {
             if (LastHitterAgent.BehaviorNameEquals("SendBallTo") && volleyballSettings.trainingModeName == "SendBallTo") {
-                LastHitterAgent.AddReward(-0.75f);    
+                LastHitterAgent.currentBehavior.AddReward(-0.75f);    
                 EndAllEpisodes();
                 return;
             }
@@ -109,10 +109,10 @@ public class VolleyballEnvController : MonoBehaviour
         GetTeamManager(team).AddReward(0.1f);
 
         if (LastHitterAgent.BehaviorNameEquals("1v1")) {
-            agent.AddReward(0.01f);
+            agent.currentBehavior.AddReward(0.01f);
         }
         else if (LastHitterAgent.BehaviorNameEquals("MoveToBall")) {
-            agent.AddReward(1.0f);
+            agent.currentBehavior.AddReward(1.0f);
 
             if (volleyballSettings.trainingModeName == "MoveToBall") {
                 EndAllEpisodes();
@@ -205,11 +205,11 @@ public class VolleyballEnvController : MonoBehaviour
             case Event.HitOutOfBounds:
                 // apply penalty to agent
                 if (LastHitterAgent != null && LastHitterAgent.BehaviorNameEquals("1v1")) {
-                    LastHitterAgent.AddReward(-0.009f);
+                    LastHitterAgent.currentBehavior.AddReward(-0.009f);
                 }
 
                 if (LastHitterAgent != null && LastHitterAgent.BehaviorNameEquals("SendBallTo")) {
-                    LastHitterAgent.AddReward(-0.5f);
+                    LastHitterAgent.currentBehavior.AddReward(-0.5f);
                 }
 
                 if (LastHitterAgent != null) {
@@ -251,7 +251,7 @@ public class VolleyballEnvController : MonoBehaviour
                     GetTeamManager(Team.Purple).AddReward(0.25f);
 
                     if (LastHitterAgent.BehaviorNameEquals("1v1")) {
-                        LastHitterAgent.AddReward(0.1f);
+                        LastHitterAgent.currentBehavior.AddReward(0.1f);
                     }
 
                     behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {LastHitterAgent}, StatisticEvent.SendBall);
@@ -264,7 +264,7 @@ public class VolleyballEnvController : MonoBehaviour
                     GetTeamManager(Team.Blue).AddReward(0.25f);
 
                     if (LastHitterAgent.BehaviorNameEquals("1v1")) {
-                        LastHitterAgent.AddReward(0.1f);
+                        LastHitterAgent.currentBehavior.AddReward(0.1f);
                     }
 
                     behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {LastHitterAgent}, StatisticEvent.SendBall);
@@ -281,17 +281,17 @@ public class VolleyballEnvController : MonoBehaviour
             GetTeamPlayers(loserTeam).ForEach(agent => {
 
                 if (agent.BehaviorNameEquals("1v1")) {
-                    agent.AddReward(-1f);
+                    agent.currentBehavior.AddReward(-1f);
                 }
 
                 if (agent.BehaviorNameEquals("MoveToBall")) {
                     // penalty according to distance from ball
-                    agent.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
+                    agent.currentBehavior.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
                 }
 
                 if (agent.BehaviorNameEquals("SendBallTo")) {
                     // penalty according to distance from target
-                    agent.AddReward(-1f);
+                    agent.currentBehavior.AddReward(-1f);
                 }
             });
             
@@ -303,7 +303,7 @@ public class VolleyballEnvController : MonoBehaviour
         if (lastHitterTeam == winnerTeam)
         {
             if (LastHitterAgent.BehaviorNameEquals("1v1")) {
-                LastHitterAgent.AddReward(1f);
+                LastHitterAgent.currentBehavior.AddReward(1f);
             }
         }
 
@@ -313,7 +313,7 @@ public class VolleyballEnvController : MonoBehaviour
             behaviorStatistics.OnStatisticEvent(this, new List<VolleyballAgent> {LastHitterAgent}, StatisticEvent.MakeMistake);
             
             if (LastHitterAgent.BehaviorNameEquals("1v1")) {
-                LastHitterAgent.AddReward(-0.009f);
+                LastHitterAgent.currentBehavior.AddReward(-0.009f);
             }
         }
 
@@ -321,12 +321,12 @@ public class VolleyballEnvController : MonoBehaviour
         if (LastHitterAgent != null && LastHitterAgent.BehaviorNameEquals("SendBallTo")) {
             float distanceToTarget = Vector3.Distance(ball.transform.position, LastHitterAgent.ManagerTarget);
             if (distanceToTarget < 1.5f) {
-                LastHitterAgent.AddReward(1f);
+                LastHitterAgent.currentBehavior.AddReward(1f);
             }
             else {
-                LastHitterAgent.AddReward(-0.05f * distanceToTarget);
+                LastHitterAgent.currentBehavior.AddReward(-0.05f * distanceToTarget);
             }
-            LastHitterAgent.AddReward(ball.GetComponent<VolleyballController>().highestPoint * 0.025f);
+            LastHitterAgent.currentBehavior.AddReward(ball.GetComponent<VolleyballController>().highestPoint * 0.025f);
         }
 
         UpdateWinLoseStatistics(winnerTeam);
@@ -365,12 +365,12 @@ public class VolleyballEnvController : MonoBehaviour
         {
             for (int i = 0; i < blueAgents.Count; i++)
             {
-                blueAgents[i].EpisodeInterrupted();
+                blueAgents[i].currentBehavior.EpisodeInterrupted();
             }
 
             for (int i = 0; i < purpleAgents.Count; i++)
             {
-                purpleAgents[i].EpisodeInterrupted();
+                purpleAgents[i].currentBehavior.EpisodeInterrupted();
             }
 
             ResetScene();
@@ -385,12 +385,12 @@ public class VolleyballEnvController : MonoBehaviour
         
         for (int i = 0; i < blueAgents.Count; i++)
         {
-            blueAgents[i].EndEpisode();
+            blueAgents[i].currentBehavior.EndEpisode();
         }
 
         for (int i = 0; i < purpleAgents.Count; i++)
         {
-            purpleAgents[i].EndEpisode();
+            purpleAgents[i].currentBehavior.EndEpisode();
         }
         
         ResetScene();
@@ -414,10 +414,10 @@ public class VolleyballEnvController : MonoBehaviour
             var randomPosY = Random.Range(0.5f, 1f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
-            agent.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
-            agent.transform.eulerAngles = new Vector3(0, randomRot, 0);
+            agent.currentBehavior.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
+            agent.currentBehavior.transform.eulerAngles = new Vector3(0, randomRot, 0);
 
-            agent.GetComponent<Rigidbody>().velocity = default(Vector3);
+            agent.currentBehavior.GetComponent<Rigidbody>().velocity = default(Vector3);
         }
 
         foreach (var agent in purpleAgents)
@@ -429,10 +429,10 @@ public class VolleyballEnvController : MonoBehaviour
             var randomPosY = Random.Range(0.5f, 1f); // depends on jump height
             var randomRot = Random.Range(-45f, 45f);
 
-            agent.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
-            agent.transform.eulerAngles = new Vector3(0, randomRot, 0);
+            agent.currentBehavior.transform.localPosition = new Vector3(randomPosX, randomPosY, randomPosZ);
+            agent.currentBehavior.transform.eulerAngles = new Vector3(0, randomRot, 0);
 
-            agent.GetComponent<Rigidbody>().velocity = default(Vector3);
+            agent.currentBehavior.GetComponent<Rigidbody>().velocity = default(Vector3);
         }
 
         // reset ball to starting conditions

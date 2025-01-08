@@ -51,7 +51,7 @@ public class BehaviorStatistics : MonoBehaviour
     private void SetRandomModel(List<VolleyballAgent> agents)
     {
         var randomModel = modelAssets[Random.Range(0, modelAssets.Count)];
-        agents.ForEach(agent => agent.SetModel("1v1", randomModel));
+        // agents.ForEach(agent => agent.SetModel("1v1", randomModel));
     }
 
     private void Start()
@@ -111,32 +111,32 @@ public class BehaviorStatistics : MonoBehaviour
     private void Win(VolleyballAgent winner) {
         if (!keepStats) return;
 
-        statistics[winner.GetModelName()].wins++;
-        statistics[winner.GetModelName()].gamesPlayed++;
+        statistics[winner.currentBehavior.GetModelName()].wins++;
+        statistics[winner.currentBehavior.GetModelName()].gamesPlayed++;
     }
 
     private void Lose(VolleyballAgent loser) {
         if (!keepStats) return;
 
-        statistics[loser.GetModelName()].losses++;
-        statistics[loser.GetModelName()].gamesPlayed++;
+        statistics[loser.currentBehavior.GetModelName()].losses++;
+        statistics[loser.currentBehavior.GetModelName()].gamesPlayed++;
     }
 
     private void Tie(VolleyballAgent agent) {
         if (!keepStats) return;
 
-        statistics[agent.GetModelName()].ties++;
-        statistics[agent.GetModelName()].gamesPlayed++;
+        statistics[agent.currentBehavior.GetModelName()].ties++;
+        statistics[agent.currentBehavior.GetModelName()].gamesPlayed++;
     }
 
     private void TouchBall(VolleyballAgent agent) {
         if (!keepStats) return;
 
-        statistics[agent.GetModelName()].touches++;
+        statistics[agent.currentBehavior.GetModelName()].touches++;
 
         // print agent location with behavior name to the log file named "ballTouches.txt"
         string agentLocation = agent.transform.localPosition.ToString();
-        string behaviorName = agent.GetModelName();
+        string behaviorName = agent.currentBehavior.GetModelName();
 
         string logLine = $"{{'behaviorName': '{behaviorName}', 'location': '{agentLocation}'}}\n";
 
@@ -153,19 +153,19 @@ public class BehaviorStatistics : MonoBehaviour
     private void MissBall(VolleyballAgent agent) {
         if (!keepStats) return;
 
-        statistics[agent.GetModelName()].misses++;
+        statistics[agent.currentBehavior.GetModelName()].misses++;
     }
 
     private void SendBall(VolleyballAgent agent) {
         if (!keepStats) return;
 
-        statistics[agent.GetModelName()].sendBalls++;
+        statistics[agent.currentBehavior.GetModelName()].sendBalls++;
     }
 
     private void MakeMistake(VolleyballAgent agent) {
         if (!keepStats) return;
 
-        statistics[agent.GetModelName()].mistakes++;
+        statistics[agent.currentBehavior.GetModelName()].mistakes++;
     }
 
 

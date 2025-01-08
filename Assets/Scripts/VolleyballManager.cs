@@ -25,9 +25,6 @@ public class VolleyballManager : Agent
     public Team teamId;
     private int teamRot;
 
-    public ModelAsset MoveToBallModel;
-    public ModelAsset SendBallToModel;
-
     public void Start()
     {
         envController = GetComponentInParent<VolleyballEnvController>();
@@ -56,11 +53,11 @@ public class VolleyballManager : Agent
 
     private void GiveTask(VolleyballAgent agent, SubTask task) {
         if (task == SubTask.MoveToBall) {
-            agent.SetModel("MoveToBall", MoveToBallModel);
+            agent.EnableBehavior("MoveToBall");
         }
 
         if (task == SubTask.SendBallToTarget) {
-            agent.SetModel("SendBallTo", SendBallToModel);
+            agent.EnableBehavior("SendBallTo");
         } 
 
     }

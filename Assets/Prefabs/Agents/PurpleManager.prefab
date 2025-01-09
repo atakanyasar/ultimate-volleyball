@@ -53,7 +53,7 @@ MonoBehaviour:
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 4
-      BranchSizes: 0200000002000000
+      BranchSizes: 020000000200000002000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
@@ -84,8 +84,6 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   teamId: 1
-  MoveToBallModel: {fileID: 0}
-  SendBallToModel: {fileID: 0}
 --- !u!114 &8601202742018230649
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -60,6 +60,10 @@ public class VolleyballManager : Agent
             agent.EnableBehavior("SendBallTo");
         } 
 
+        if (task == SubTask.MoveToPosition) {
+            agent.EnableBehavior("MoveToPosition");
+        }
+
     }
 
     public override void OnActionReceived(ActionBuffers actions) {
@@ -83,16 +87,35 @@ public class VolleyballManager : Agent
 
                 GiveTask(agent, SubTask.SendBallToTarget);
             }
+            else if (action == 2) {
+                agent.ActiveTarget = true;
+                agent.ManagerTarget = transform.position + new Vector3(x * 6.0f * teamRot, 0.5f, z * 6.0f * teamRot);
+                agent.ManagerTargetPlane.SetActive(true);
+    
+                GiveTask(agent, SubTask.MoveToPosition);
+            }
             else {
                 GiveTask(agent, SubTask.Idle);
             }
         }
             
-
+    
         foreach (VolleyballAgent agent in agents) {
-            if (agent.BehaviorNameEquals("SendBallTo")) {
+            if (agent.BehaviorNameEquals("SendBallTo") || agent.BehaviorNameEquals("MoveToPosition")) {
                 if (agent.ActiveTarget) {
                     agent.ManagerTargetPlane.transform.position = agent.ManagerTarget;
+                }
+            }
+        }
+
+        // penalty for low area coverage
+        foreach (VolleyballAgent agent1 in agents) {
+            foreach (VolleyballAgent agent2 in agents) {
+                if (agent1 == agent2) {
+                    continue;
+                }
+                if (Vector3.Distance(agent1.transform.position, agent2.transform.position) < 2.0f) {
+                    AddReward(-0.01f);
                 }
             }
         }
@@ -160,8 +183,8 @@ public class VolleyballManager : Agent
             return;
         }
 
-        actionsOut.DiscreteActions.Array[0] = 2; // idle
-        actionsOut.DiscreteActions.Array[1] = 2; // idle
+        actionsOut.DiscreteActions.Array[0] = 3; // idle
+        actionsOut.DiscreteActions.Array[1] = 3; // idle
 
         foreach (VolleyballAgent agent in agents) {
             if (agent.BehaviorNameEquals("SendBallTo")) {
@@ -174,7 +197,7 @@ public class VolleyballManager : Agent
             if (agent.BehaviorNameEquals("MoveToPosition")) {
                 if (agent.ActiveTarget == false) {
                     agent.ActiveTarget = true;
-                    agent.ManagerTarget = transform.position + new Vector3(Random.Range(-2.0f, 2.0f), 0.5f, Random.Range(-2.0f, 2.0f));
+                    agent.ManagerTarget = transform.position + new Vector3(Random.Range(-6.0f, 6.0f), 0.5f, Random.Range(-6.0f, 6.0f));
                     agent.ManagerTargetPlane.SetActive(true);
                 }
             }

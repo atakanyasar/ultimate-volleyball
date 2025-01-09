@@ -171,7 +171,7 @@ public class VolleyballAgentBehavior : Agent
         if (jumpAction == 1) {
 
             // Penalty for unecessary jumping
-            if (BehaviorNameEquals("MoveTo") || BehaviorNameEquals("MoveToBall")) {
+            if (BehaviorNameEquals("MoveToPosition") || BehaviorNameEquals("MoveToBall")) {
                 AddReward(-0.2f);
             }
             else {
@@ -218,21 +218,28 @@ public class VolleyballAgentBehavior : Agent
         MoveAgent(actionBuffers.DiscreteActions);
         var currentDistance = Vector3.Distance(this.transform.position, volleyballAgent.ManagerTarget);
 
-        if (BehaviorNameEquals("MoveTo")) {
+        if (BehaviorNameEquals("MoveToPosition")) {
             if (volleyballAgent.ActiveTarget) {
-                // relative to manager
-                volleyballAgent.ManagerTargetPlane.transform.position = volleyballAgent.ManagerTarget;
+                // Penalty for time spent on the task
+                AddReward(-0.005f);
 
                 // If moved towards the target, reward the agent
                 AddReward((previousDistance - currentDistance) * 0.001f);
 
                 // If agent reaches the target
-                if (currentDistance < 0.75f)
+                if (currentDistance < 1f)
                 {
                     AddReward(1.0f);
                     volleyballAgent.ActiveTarget = false;
                     volleyballAgent.ManagerTarget = new Vector3(-1.0f, 0.5f, -1.0f);
                     volleyballAgent.ManagerTargetPlane.SetActive(false);
+
+                    // penalty for high velocity
+                    if (agentRb.velocity.magnitude > 2f) {
+                        AddReward(-0.3f);
+                    }
+                    
+                    EndEpisode();
                 }
             }
         }
@@ -242,7 +249,7 @@ public class VolleyballAgentBehavior : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
 
-        if (BehaviorParameters.BehaviorName == "MoveTo") {
+        if (BehaviorNameEquals("MoveToPosition")) {
             // agent observations (9 floats)
             CollectAgentObservations(sensor);
 

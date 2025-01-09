@@ -373,13 +373,16 @@ public class VolleyballEnvController : MonoBehaviour
                 purpleAgents[i].currentBehavior.EpisodeInterrupted();
             }
 
+            GetTeamManager(Team.Blue).EpisodeInterrupted();
+            GetTeamManager(Team.Purple).EpisodeInterrupted();
+
             ResetScene();
         }
     }
 
     public void EndAllEpisodes()
     {
-        if (volleyballSettings.trainingModeName == "MoveTo") {
+        if (volleyballSettings.trainingModeName == "MoveToPosition") {
             return;
         }
         
@@ -392,6 +395,9 @@ public class VolleyballEnvController : MonoBehaviour
         {
             purpleAgents[i].currentBehavior.EndEpisode();
         }
+
+        GetTeamManager(Team.Blue).EndEpisode();
+        GetTeamManager(Team.Purple).EndEpisode();
         
         ResetScene();
     }

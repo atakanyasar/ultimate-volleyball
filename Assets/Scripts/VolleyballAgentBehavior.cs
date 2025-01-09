@@ -347,7 +347,7 @@ public class VolleyballAgentBehavior : Agent
         sensor.AddObservation(ballRb.velocity.x*agentRot);
 
         // Is agent last hitter (1 float)
-        sensor.AddObservation(envController.LastHitterAgent == this);
+        sensor.AddObservation(envController.LastHitterAgent == volleyballAgent);
     }
 
     /// <summary>

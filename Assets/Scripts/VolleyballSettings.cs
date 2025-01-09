@@ -20,5 +20,6 @@ public class VolleyballSettings : MonoBehaviour
     public float ballResetMaxVelocity = 10f;
     public float ballResetMaxLocation = 2f;
     public string trainingModeName = null;
+    public bool showManagerPlanes = false;
      
 }

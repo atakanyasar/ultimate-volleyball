@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.MLAgents;
@@ -97,6 +98,11 @@ public class VolleyballEnvController : MonoBehaviour
             GetTeamManager(team).AddReward(-0.2f);
         }
 
+        // Pass event
+        else if (team == lastHitterTeam) {
+            GetTeamManager(team).AddReward(0.1f);
+        }
+
         // update last hitter
         lastHitterTeam = team;
         LastHitterAgent = agent;
@@ -117,6 +123,53 @@ public class VolleyballEnvController : MonoBehaviour
             if (volleyballSettings.trainingModeName == "MoveToBall") {
                 EndAllEpisodes();
             }
+        }
+
+
+        // Penalty for being close to other agents
+        foreach (VolleyballAgent other in GetTeamPlayers(team)) {
+            if (agent == other) {
+                continue;
+            }
+
+            if (Vector3.Distance(agent.currentBehavior.transform.position, other.currentBehavior.transform.position) < 2f) {
+                GetTeamManager(team).AddReward(-0.1f);
+            }
+            if (Vector3.Distance(agent.currentBehavior.transform.position, other.currentBehavior.transform.position) < 3f) {
+                GetTeamManager(team).AddReward(-0.01f);
+            }
+            if (Vector3.Distance(agent.currentBehavior.transform.position, other.currentBehavior.transform.position) < 4f) {
+                GetTeamManager(team).AddReward(-0.001f);
+            }
+        }
+
+        // Penalty for opponent being close to borders and other agents
+        foreach (VolleyballAgent opponent1 in GetTeamPlayers(GetOpponentTeam(team))) {
+            float minDistance = 1000f;
+
+            minDistance = Mathf.Min(minDistance, Math.Abs(opponent1.currentBehavior.transform.localPosition.x - 7f));
+            minDistance = Mathf.Min(minDistance, Math.Abs(opponent1.currentBehavior.transform.localPosition.x + 7f));
+            minDistance = Mathf.Min(minDistance, Math.Abs(opponent1.currentBehavior.transform.localPosition.z - 7f));
+            minDistance = Mathf.Min(minDistance, Math.Abs(opponent1.currentBehavior.transform.localPosition.z + 7f));
+
+            foreach (VolleyballAgent opponent2 in GetTeamPlayers(GetOpponentTeam(team))) {
+                if (opponent1 == opponent2) {
+                    continue;
+                }
+
+                minDistance = Mathf.Min(minDistance, Vector3.Distance(opponent1.currentBehavior.transform.position, opponent2.currentBehavior.transform.position));
+            }
+
+            if (minDistance < 2f) {
+                GetTeamManager(GetOpponentTeam(team)).AddReward(-0.05f);
+            }
+            if (minDistance < 3f) {
+                GetTeamManager(GetOpponentTeam(team)).AddReward(-0.005f);
+            }
+            if (minDistance < 4f) {
+                GetTeamManager(GetOpponentTeam(team)).AddReward(-0.0005f);
+            }
+            
         }
         
 
@@ -286,7 +339,7 @@ public class VolleyballEnvController : MonoBehaviour
 
                 if (agent.BehaviorNameEquals("MoveToBall")) {
                     // penalty according to distance from ball
-                    agent.currentBehavior.AddReward(-0.1f * Vector3.Distance(agent.transform.position, ball.transform.position));
+                    agent.currentBehavior.AddReward(-0.1f * Vector3.Distance(agent.currentBehavior.transform.position, ball.transform.position));
                 }
 
                 if (agent.BehaviorNameEquals("SendBallTo")) {
@@ -296,7 +349,7 @@ public class VolleyballEnvController : MonoBehaviour
             });
             
             behaviorStatistics.OnStatisticEvent(this, GetTeamPlayers(loserTeam), StatisticEvent.MissBall);
-
+            GetTeamManager(loserTeam).AddReward(-1f);
         }
 
         // last hitter agent scores into goal with successfull hit
@@ -477,8 +530,8 @@ public class VolleyballEnvController : MonoBehaviour
 
             randomPosZ = Random.Range(-volleyballSettings.ballResetMaxLocation, volleyballSettings.ballResetMaxLocation);
 
-            randomPosX = (ballSpawnSide == -1 ? blueAgents[0].transform.position.x : purpleAgents[0].transform.position.x) + randomPosX;
-            randomPosZ = (ballSpawnSide == -1 ? blueAgents[0].transform.position.z : purpleAgents[0].transform.position.z) + randomPosZ;
+            randomPosX = (ballSpawnSide == -1 ? blueAgents[0].currentBehavior.transform.position.x : purpleAgents[0].currentBehavior.transform.position.x) + randomPosX;
+            randomPosZ = (ballSpawnSide == -1 ? blueAgents[0].currentBehavior.transform.position.z : purpleAgents[0].currentBehavior.transform.position.z) + randomPosZ;
 
             ball.transform.position = new Vector3(randomPosX, randomPosY, randomPosZ);
 

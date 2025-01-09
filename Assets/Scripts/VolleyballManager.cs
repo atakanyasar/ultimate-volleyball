@@ -22,6 +22,7 @@ public class VolleyballManager : Agent
     // get script from parent object
     private VolleyballEnvController envController;
     private List<VolleyballAgent> agents = new();
+    public string teamName;
     public Team teamId;
     private int teamRot;
 
@@ -83,14 +84,14 @@ public class VolleyballManager : Agent
             else if (action == 1) {
                 agent.ActiveTarget = true;
                 agent.ManagerTarget = GetComponentInParent<VolleyballEnvController>().transform.position + new Vector3(x * 6.0f * teamRot, 0.5f, z * 13.0f * teamRot);
-                agent.ManagerTargetPlane.SetActive(true);
+                agent.ManagerTargetPlane.SetActive(envController.volleyballSettings.showManagerPlanes);
 
                 GiveTask(agent, SubTask.SendBallToTarget);
             }
             else if (action == 2) {
                 agent.ActiveTarget = true;
                 agent.ManagerTarget = transform.position + new Vector3(x * 6.0f * teamRot, 0.5f, z * 6.0f * teamRot);
-                agent.ManagerTargetPlane.SetActive(true);
+                agent.ManagerTargetPlane.SetActive(envController.volleyballSettings.showManagerPlanes);
     
                 GiveTask(agent, SubTask.MoveToPosition);
             }
@@ -108,36 +109,25 @@ public class VolleyballManager : Agent
             }
         }
 
-        // penalty for low area coverage
-        foreach (VolleyballAgent agent1 in agents) {
-            foreach (VolleyballAgent agent2 in agents) {
-                if (agent1 == agent2) {
-                    continue;
-                }
-                if (Vector3.Distance(agent1.transform.position, agent2.transform.position) < 2.0f) {
-                    AddReward(-0.01f);
-                }
-            }
-        }
     }
 
     public override void CollectObservations(VectorSensor sensor) {
 
-        foreach (var agent in agents) {           
+        foreach (VolleyballAgent agent in agents) {           
             // agent position (3 floats)
-            sensor.AddObservation(agent.transform.localPosition.x * teamRot);
-            sensor.AddObservation(agent.transform.localPosition.y);
-            sensor.AddObservation(agent.transform.localPosition.z * teamRot);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.x * teamRot);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.y);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.z * teamRot);
 
             // is agent last hitter (1 float)
             sensor.AddObservation(envController.LastHitterAgent == agent);
         }
 
-        foreach (var agent in envController.GetTeamPlayers(envController.GetOpponentTeam(teamId))) {
+        foreach (VolleyballAgent agent in envController.GetTeamPlayers(envController.GetOpponentTeam(teamId))) {
             // opponent agent position (3 floats)
-            sensor.AddObservation(agent.transform.localPosition.x * teamRot);
-            sensor.AddObservation(agent.transform.localPosition.y);
-            sensor.AddObservation(agent.transform.localPosition.z * teamRot);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.x * teamRot);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.y);
+            sensor.AddObservation(agent.currentBehavior.transform.localPosition.z * teamRot);
         }
 
         // ball position (3 floats)
@@ -191,14 +181,14 @@ public class VolleyballManager : Agent
                 if (agent.ActiveTarget == false) {
                     agent.ActiveTarget = true;
                     agent.ManagerTarget = GetComponentInParent<VolleyballEnvController>().transform.position + new Vector3(Random.Range(-6.0f, 6.0f), 0.5f, Random.Range(-13.0f, 13.0f));
-                    agent.ManagerTargetPlane.SetActive(true);
+                    agent.ManagerTargetPlane.SetActive(envController.volleyballSettings.showManagerPlanes);
                 } 
             }
             if (agent.BehaviorNameEquals("MoveToPosition")) {
                 if (agent.ActiveTarget == false) {
                     agent.ActiveTarget = true;
                     agent.ManagerTarget = transform.position + new Vector3(Random.Range(-6.0f, 6.0f), 0.5f, Random.Range(-6.0f, 6.0f));
-                    agent.ManagerTargetPlane.SetActive(true);
+                    agent.ManagerTargetPlane.SetActive(envController.volleyballSettings.showManagerPlanes);
                 }
             }
         }

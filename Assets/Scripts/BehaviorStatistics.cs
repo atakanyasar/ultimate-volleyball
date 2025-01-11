@@ -12,29 +12,28 @@ using Random = UnityEngine.Random;
 public enum StatisticEvent
 {
     Win,
-    Lose,
-    Tie,
     TouchBall,
     MissBall,
-    SendBall,
-    MakeMistake,
+    PassBall,
+    SendBallToOwnArea,
+    SendBallToOppositeArea,
+    SendBallOutOfBounds,
 };
 
 public class BehaviorStatistics : MonoBehaviour
 {
-    public record Statistics 
+    public record MatchStatistics 
     {
-        public int gamesPlayed;
         public int wins;
-        public int losses;
-        public int ties;
         public int touches;
+        public int passes;
         public int misses;
-        public int sendBalls;
-        public int mistakes;
+        public int sendBallSuccess;
+        public int sendBallFail;
+        public int sendBallOut;
     };
 
-    public Dictionary<string, Statistics> statistics = new Dictionary<string, Statistics>();
+    private Dictionary<string, Dictionary<string, MatchStatistics>> matchStatistics = new Dictionary<string, Dictionary<string, MatchStatistics>>();
 
     public bool keepStats = false;
     public string ballTouchesLogFileName = "statistics/ballTouches.txt";
@@ -45,100 +44,119 @@ public class BehaviorStatistics : MonoBehaviour
     public List<ModelAsset> modelAssets;
     private List<VolleyballEnvController> volleyballAreas;
 
-    private int updateCounter = 0;
+    public int matchesPerSet = 11;
 
-
-    private void SetRandomModel(List<VolleyballAgent> agents)
+    private ModelAsset SetRandomModel(VolleyballManager manager)
     {
         var randomModel = modelAssets[Random.Range(0, modelAssets.Count)];
-        // agents.ForEach(agent => agent.SetModel("1v1", randomModel));
+        manager.SetModel("Manager", randomModel);
+        return randomModel;
+    }
+
+    private void ResetMatchStatistics(VolleyballEnvController area)
+    {
+        VolleyballManager blueManager = area.blueManager.GetComponent<VolleyballManager>();
+        VolleyballManager purpleManager = area.purpleManager.GetComponent<VolleyballManager>();
+
+        var blueModel = SetRandomModel(blueManager);
+        var purpleModel = SetRandomModel(purpleManager);
+
+        blueManager.teamName = (blueModel == null ? "Default" : blueModel.name) + " (Blue)";
+        purpleManager.teamName = (purpleModel == null ? "Default" : purpleModel.name) + " (Purple)";
+
+        if (!matchStatistics.ContainsKey(blueManager.teamName))
+            matchStatistics[blueManager.teamName] = new Dictionary<string, MatchStatistics>();
+        if (!matchStatistics.ContainsKey(purpleManager.teamName))
+            matchStatistics[purpleManager.teamName] = new Dictionary<string, MatchStatistics>();
+        
+        if (!matchStatistics[blueManager.teamName].ContainsKey(purpleManager.teamName))
+        {
+            matchStatistics[blueManager.teamName][purpleManager.teamName] = new MatchStatistics();
+            matchStatistics[purpleManager.teamName][blueManager.teamName] = new MatchStatistics();
+        }
+        else 
+        {
+            ResetMatchStatistics(area);
+        }
+        
     }
 
     private void Start()
     {
         if (!keepStats) return;
 
-        modelAssets.ForEach(modelAsset => statistics.Add(modelAsset.name, new Statistics()));
+        // save team names
         volleyballAreas = GetComponentsInChildren<VolleyballEnvController>().ToList();
 
+        volleyballAreas.ForEach(area => ResetMatchStatistics(area));
+
         ballTouchesLogFileStream = new FileStream(ballTouchesLogFileName, FileMode.OpenOrCreate, FileAccess.Write);
+        statisticsLogFileStream = new FileStream(statisticsLogFileName, FileMode.OpenOrCreate, FileAccess.Write);
 
-        foreach (var volleyballArea in volleyballAreas)
-        {
-            var blueAgents = volleyballArea.blueManager.GetComponent<VolleyballManager>().GetAgents();
-            var purpleAgents = volleyballArea.purpleManager.GetComponent<VolleyballManager>().GetAgents();
-
-            SetRandomModel(blueAgents);
-            SetRandomModel(purpleAgents);
-        }
     }
 
-    public void OnStatisticEvent(VolleyballEnvController env, List<VolleyballAgent> agents, StatisticEvent statisticEvent)
+    public void OnStatisticEvent(VolleyballEnvController env, VolleyballManager team, VolleyballManager opponentTeam, StatisticEvent statisticEvent)
     {
         if (!keepStats) return;
 
+        string teamName = team.teamName;
+        string opponentTeamName = (opponentTeam != null ? opponentTeam.teamName : "");
+
+        if (teamName == opponentTeamName) {
+            opponentTeamName = teamName + " (1)";
+        }
+
         switch (statisticEvent)
         {
-            case StatisticEvent.Win:
-                agents.ForEach(agent => Win(agent));
-                SetRandomModel(agents);
-                break;
-            case StatisticEvent.Lose:
-                agents.ForEach(agent => Lose(agent));
-                SetRandomModel(agents);
-                break;
-            case StatisticEvent.Tie:
-                agents.ForEach(agent => Tie(agent));
-                SetRandomModel(agents);
+            case StatisticEvent.Win: 
+                matchStatistics[teamName][opponentTeamName].wins++;
+                handleMatchEnd(env, teamName, opponentTeamName);
                 break;
             case StatisticEvent.TouchBall:
-                agents.ForEach(agent => TouchBall(agent));
+                TouchBall(env, teamName, opponentTeamName);
+                break;
+            case StatisticEvent.PassBall:
+                matchStatistics[teamName][opponentTeamName].passes++;
                 break;
             case StatisticEvent.MissBall:
-                agents.ForEach(agent => MissBall(agent));
+                matchStatistics[teamName][opponentTeamName].misses++;
                 break;
-            case StatisticEvent.SendBall:
-                agents.ForEach(agent => SendBall(agent));
+            case StatisticEvent.SendBallToOppositeArea:
+                matchStatistics[teamName][opponentTeamName].sendBallSuccess++;
                 break;
-            case StatisticEvent.MakeMistake:
-                agents.ForEach(agent => MakeMistake(agent));
+            case StatisticEvent.SendBallToOwnArea:
+                matchStatistics[teamName][opponentTeamName].sendBallFail++;
+                break;
+            case StatisticEvent.SendBallOutOfBounds:
+                matchStatistics[teamName][opponentTeamName].sendBallOut++;
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
-    private void Win(VolleyballAgent winner) {
-        if (!keepStats) return;
+    private void handleMatchEnd(VolleyballEnvController envController, string teamName, string opponentTeamName)
+    {
+        if (matchStatistics[teamName][opponentTeamName].wins == matchesPerSet || matchStatistics[opponentTeamName][teamName].wins == matchesPerSet)
+        {
+            PrintMatchStatistics(teamName, opponentTeamName);
 
-        statistics[winner.currentBehavior.GetModelName()].wins++;
-        statistics[winner.currentBehavior.GetModelName()].gamesPlayed++;
+            matchStatistics[teamName].Remove(opponentTeamName);
+            matchStatistics[opponentTeamName].Remove(teamName);
+
+            ResetMatchStatistics(envController);
+        }
     }
 
-    private void Lose(VolleyballAgent loser) {
+    private void TouchBall(VolleyballEnvController volleyballEnv, string teamName, string opponentTeamName) {
         if (!keepStats) return;
 
-        statistics[loser.currentBehavior.GetModelName()].losses++;
-        statistics[loser.currentBehavior.GetModelName()].gamesPlayed++;
-    }
-
-    private void Tie(VolleyballAgent agent) {
-        if (!keepStats) return;
-
-        statistics[agent.currentBehavior.GetModelName()].ties++;
-        statistics[agent.currentBehavior.GetModelName()].gamesPlayed++;
-    }
-
-    private void TouchBall(VolleyballAgent agent) {
-        if (!keepStats) return;
-
-        statistics[agent.currentBehavior.GetModelName()].touches++;
+        matchStatistics[teamName][opponentTeamName].touches++;
 
         // print agent location with behavior name to the log file named "ballTouches.txt"
-        string agentLocation = agent.transform.localPosition.ToString();
-        string behaviorName = agent.currentBehavior.GetModelName();
+        string ballTouchLocation = volleyballEnv.ball.transform.localPosition.ToString();
 
-        string logLine = $"{{'behaviorName': '{behaviorName}', 'location': '{agentLocation}'}}\n";
+        string logLine = $"{{'teamName': '{teamName}', 'location': '{ballTouchLocation}'}}\n";
 
         // convert the string to a byte array
         byte[] logLineBytes = System.Text.Encoding.ASCII.GetBytes(logLine);
@@ -150,58 +168,28 @@ public class BehaviorStatistics : MonoBehaviour
         ballTouchesLogFileStream.Flush();
     }
 
-    private void MissBall(VolleyballAgent agent) {
-        if (!keepStats) return;
-
-        statistics[agent.currentBehavior.GetModelName()].misses++;
-    }
-
-    private void SendBall(VolleyballAgent agent) {
-        if (!keepStats) return;
-
-        statistics[agent.currentBehavior.GetModelName()].sendBalls++;
-    }
-
-    private void MakeMistake(VolleyballAgent agent) {
-        if (!keepStats) return;
-
-        statistics[agent.currentBehavior.GetModelName()].mistakes++;
-    }
-
-
-
-
-
-    private void Update()
+    private void PrintMatchStatistics(string teamName, string opponentTeamName)
     {
-        if (!keepStats) return;
+        string printLine = $"{{'{teamName} vs {opponentTeamName}': {{'wins': {matchStatistics[teamName][opponentTeamName].wins}, " +
+                   $"'touches': {matchStatistics[teamName][opponentTeamName].touches}, " +
+                   $"'passes': {matchStatistics[teamName][opponentTeamName].passes}, " +
+                   $"'misses': {matchStatistics[teamName][opponentTeamName].misses}, " +
+                   $"'sendBallSuccess': {matchStatistics[teamName][opponentTeamName].sendBallSuccess}, " +
+                   $"'sendBallFail': {matchStatistics[teamName][opponentTeamName].sendBallFail}, " +
+                   $"'sendBallOut': {matchStatistics[teamName][opponentTeamName].sendBallOut}}}}}\n";
+        printLine += $"{{'{opponentTeamName} vs {teamName}': {{'wins': {matchStatistics[opponentTeamName][teamName].wins}, " +
+                     $"'touches': {matchStatistics[opponentTeamName][teamName].touches}, " +
+                     $"'passes': {matchStatistics[opponentTeamName][teamName].passes}, " +
+                     $"'misses': {matchStatistics[opponentTeamName][teamName].misses}, " +
+                     $"'sendBallSuccess': {matchStatistics[opponentTeamName][teamName].sendBallSuccess}, " +
+                     $"'sendBallFail': {matchStatistics[opponentTeamName][teamName].sendBallFail}, " +
+                     $"'sendBallOut': {matchStatistics[opponentTeamName][teamName].sendBallOut}}}}}\n";
+        byte[] printLineBytes = System.Text.Encoding.ASCII.GetBytes(printLine);
+        statisticsLogFileStream.Write(printLineBytes, 0, printLineBytes.Length);
+        statisticsLogFileStream.Flush();
 
-        if (updateCounter % 1000 == 0)
-        {
-            statisticsLogFileStream = new FileStream(statisticsLogFileName, FileMode.OpenOrCreate, FileAccess.Write);
-
-            Debug.Log("Statistics:");
-            foreach (var (key, value) in statistics)
-            {
-                float winrate = (float)value.wins / value.gamesPlayed * 100;
-                float missrate = (float)value.misses / value.losses * 100;
-                float sendrate = (float)value.sendBalls / value.touches * 100;
-                float mistakeRate = (float)value.mistakes / value.touches * 100;
-                float touchesPerGame = (float)value.touches / value.gamesPlayed;
-
-                Debug.Log($"{key}: {value.gamesPlayed} games played, win rate {winrate}%, {touchesPerGame} touches per game, {missrate}% lose caused by miss, {sendrate}% successful sends, {mistakeRate}% mistakes per touch"); 
-
-                string logLine = $"{{'{key}': {{'gamesPlayed': {value.gamesPlayed}, 'winRate': {winrate}, 'touchesPerGame': {touchesPerGame}, 'missRate': {missrate}, 'sendRate': {sendrate}, 'mistakeRate': {mistakeRate}}}}}\n";
-                byte[] logLineBytes = System.Text.Encoding.ASCII.GetBytes(logLine);
-                statisticsLogFileStream.Write(logLineBytes, 0, logLineBytes.Length);
-                statisticsLogFileStream.Flush();
-            }
-
-            statisticsLogFileStream.Close();
-        }
+        Debug.Log(printLine);
         
-        updateCounter++;
-
     }
 
     // on exit, close the log file

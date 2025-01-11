@@ -65,6 +65,10 @@ public class VolleyballManager : Agent
             agent.EnableBehavior("MoveToPosition");
         }
 
+        if (task == SubTask.SinglePlayer) {
+            agent.EnableBehavior("Volleyball");
+        }
+
     }
 
     public override void OnActionReceived(ActionBuffers actions) {
@@ -94,6 +98,9 @@ public class VolleyballManager : Agent
                 agent.ManagerTargetPlane.SetActive(envController.volleyballSettings.showManagerPlanes);
     
                 GiveTask(agent, SubTask.MoveToPosition);
+            }
+            else if(action == 6) {
+                GiveTask(agent, SubTask.SinglePlayer);
             }
             else {
                 GiveTask(agent, SubTask.Idle);
@@ -173,8 +180,8 @@ public class VolleyballManager : Agent
             return;
         }
 
-        actionsOut.DiscreteActions.Array[0] = 3; // idle
-        actionsOut.DiscreteActions.Array[1] = 3; // idle
+        actionsOut.DiscreteActions.Array[0] = 6; // Default single player
+        actionsOut.DiscreteActions.Array[1] = 6; // Default single player
 
         foreach (VolleyballAgent agent in agents) {
             if (agent.BehaviorNameEquals("SendBallTo")) {

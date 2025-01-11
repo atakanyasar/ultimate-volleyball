@@ -1222,6 +1222,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5257801228786892912, guid: b3ea34186dd90ef489869b4c3b4f4670, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 8990040848440251482, guid: b3ea34186dd90ef489869b4c3b4f4670, type: 3}
       propertyPath: m_Name
       value: BlueManager
@@ -1269,6 +1273,10 @@ PrefabInstance:
       propertyPath: ball
       value: 
       objectReference: {fileID: 1317026924745720295}
+    - target: {fileID: 7004950977682915840, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 7601315498770753160, guid: d010aca3dd2afad46a429c59c2ec4ee4, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
